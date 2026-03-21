@@ -1,213 +1,105 @@
-import javax.swing.*;
-import java.awt.*;
+import java.io.*;
+import java.net.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class FireGUI extends JFrame {
+public class FireIncidentSubsystem {
 
-    // --- Drone info maps ---
-    private Map<Integer, JLabel> droneStatusMap = new ConcurrentHashMap<>();
-    private Map<Integer, JLabel> droneZoneMap = new ConcurrentHashMap<>();
-    private Map<Integer, JLabel> droneAgentMap = new ConcurrentHashMap<>();
+    private DatagramSocket socket;
+    private InetAddress schedulerAddress;
+    private int schedulerPort;
+    private Map<Integer, FireZone> zones = new HashMap<>();
 
-    // --- Panels ---
-    private JPanel droneInfoPanel;
-    private ZonePanel zonePanel;
-    private JTextArea logArea;
-
-    public FireGUI() {
-        setTitle("Firefighting Drone System");
-        setSize(1000, 600);
-        setLayout(new BorderLayout());
-
-        // --- Drone info panel (top) ---
-        droneInfoPanel = new JPanel();
-        droneInfoPanel.setLayout(new GridLayout(1, 3, 10, 10));
-        droneInfoPanel.setBorder(BorderFactory.createTitledBorder("Drones"));
-        add(droneInfoPanel, BorderLayout.NORTH);
-
-        // --- Zone panel (center) ---
-        zonePanel = new ZonePanel();
-        add(zonePanel, BorderLayout.CENTER);
-
-        // --- Log panel (bottom, optional) ---
-        logArea = new JTextArea(8, 30);
-        logArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("System Log"));
-        add(scrollPane, BorderLayout.SOUTH);
-
-        setVisible(true);
+    public FireIncidentSubsystem(String schedulerHost, int schedulerPort) throws Exception {
+        this.socket = new DatagramSocket();
+        this.schedulerAddress = InetAddress.getByName(schedulerHost);
+        this.schedulerPort = schedulerPort;
     }
 
-    // --- Register drone in the info panel ---
-    public void registerDrone(int id) {
-        JPanel panel = new JPanel(new GridLayout(4, 1));
-        panel.setBorder(BorderFactory.createTitledBorder("Drone " + id));
+    // --- Read zones from CSV and send to Scheduler ---
+    public void readZones(String filename) throws Exception {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            boolean firstLine = true;
 
-        JLabel idLabel = new JLabel("ID: " + id);
-        JLabel statusLabel = new JLabel("State: IDLE");
-        JLabel zoneLabel = new JLabel("Zone: -");
-        JLabel agentLabel = new JLabel("Agent: 14L");
+            while ((line = br.readLine()) != null) {
+                if (firstLine) { firstLine = false; continue; }
+                if (line.trim().isEmpty()) continue;
 
-        droneStatusMap.put(id, statusLabel);
-        droneZoneMap.put(id, zoneLabel);
-        droneAgentMap.put(id, agentLabel);
+                String[] p = line.split(",");
+                int zoneId = Integer.parseInt(p[0].trim());
 
-        panel.add(idLabel);
-        panel.add(statusLabel);
-        panel.add(zoneLabel);
-        panel.add(agentLabel);
+                String[] start = p[1].replace("(", "").replace(")", "").split(";");
+                String[] end = p[2].replace("(", "").replace(")", "").split(";");
 
-        droneInfoPanel.add(panel);
-        revalidate();
-        repaint();
-    }
+                int x1 = Integer.parseInt(start[0].trim());
+                int y1 = Integer.parseInt(start[1].trim());
+                int x2 = Integer.parseInt(end[0].trim());
+                int y2 = Integer.parseInt(end[1].trim());
 
-    // --- Update drone info ---
-    public void updateDroneStatus(int id, String status) {
-        SwingUtilities.invokeLater(() -> {
-            JLabel label = droneStatusMap.get(id);
-            if (label != null) label.setText("State: " + status);
-        });
-    }
+                FireZone zone = new FireZone(zoneId, x1, y1, x2, y2);
+                zones.put(zoneId, zone);
 
-    public void updateZone(int id, int zoneId) {
-        SwingUtilities.invokeLater(() -> {
-            JLabel label = droneZoneMap.get(id);
-            if (label != null) label.setText("Zone: " + zoneId);
-        });
-    }
+                String msg = "ZONE," + zoneId + "," + x1 + "," + y1 + "," + x2 + "," + y2;
+                sendMessage(msg);
 
-    public void updateAgent(int id, int agent) {
-        SwingUtilities.invokeLater(() -> {
-            JLabel label = droneAgentMap.get(id);
-            if (label != null) label.setText("Agent: " + agent + "L");
-        });
-    }
-
-    public void log(String message) {
-        SwingUtilities.invokeLater(() -> logArea.append(message + "\n"));
-    }
-
-    public void updateDronePosition(int droneId, int x, int y) {
-        zonePanel.updateDronePosition(droneId, x, y);
-    }
-
-    public void setZones(Map<Integer, FireZone> zones) {
-        zonePanel.setZones(zones);
-    }
-
-    public void setZoneOnFire(int zoneId, boolean onFire, String severity) {
-        zonePanel.setZoneOnFire(zoneId, onFire, severity);
-    }
-
-
-    // ================== Inner Zone Panel ==================
-    static class ZonePanel extends JPanel {
-        private final Map<Integer, FireZone> zones = new HashMap<>();
-        private final Map<Integer, Point> dronePositions = new HashMap<>();
-        private final Map<Integer, Integer> activeFires = new HashMap<>(); // count of active fires per zone
-        private final Map<Integer, String> fireSeverity = new HashMap<>();
-
-        public void setZones(Map<Integer, FireZone> newZones) {
-            synchronized (zones) {
-                zones.clear();
-                zones.putAll(newZones);
+                System.out.println("[FireIncident] Sent zone " + zoneId);
             }
-            SwingUtilities.invokeLater(this::repaint);
         }
+    }
 
-        public void updateDronePosition(int droneId, int x, int y) {
-            synchronized (dronePositions) {
-                dronePositions.put(droneId, new Point(x, y));
-            }
-            SwingUtilities.invokeLater(this::repaint);
-        }
+    public static final double TIME_FACTOR = 0.1;
 
-        // Increment or decrement fire count for a zone
-        public void setZoneOnFire(int zoneId, boolean onFire, String severity) {
-            synchronized (activeFires) {
-                int count = activeFires.getOrDefault(zoneId, 0);
+    // --- Read events from CSV and send to Scheduler ---
+    public void readEvents(String filename) throws Exception {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            boolean firstLine = true;
+            int prevEventTime = -1;
 
-                if (onFire) {
-                    count++; //New fire event
-                    activeFires.put(zoneId, count);
-                    fireSeverity.put(zoneId, severity);
-                } else {
-                    count--;
-                    if (count <= 0) { //No more fire
-                        activeFires.remove(zoneId);
-                        fireSeverity.remove(zoneId);
-                    } else {
-                        activeFires.put(zoneId, count);
+            while ((line = br.readLine()) != null) {
+                if (firstLine) { firstLine = false; continue; }
+                if (line.trim().isEmpty()) continue;
+
+                String[] p = line.split(",");
+                String time = p[0].trim();
+                int zoneId = Integer.parseInt(p[1].trim());
+                String type = p[2].trim();
+                String severity = p[3].trim();
+
+                FireZone zone = zones.get(zoneId);
+                if (zone == null) {
+                    System.out.println("[FireIncident] ERROR: Zone not found for zoneId=" + zoneId);
+                    continue;
+                }
+
+                int centerX = zone.centerX();
+                int centerY = zone.centerY();
+
+                int currentTime = new FireEvent(time, zoneId, type, severity, centerX, centerY).getIntTime();
+                if (prevEventTime != -1) {
+                    int diffSeconds = currentTime - prevEventTime;
+                    if (diffSeconds > 0) {
+                        Thread.sleep((long) (diffSeconds * 1000 * TIME_FACTOR));
                     }
                 }
-            }
-            SwingUtilities.invokeLater(this::repaint);
-        }
+                prevEventTime = currentTime;
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-
-            g.setColor(Color.WHITE);
-            g.fillRect(0, 0, getWidth(), getHeight());
-
-            double zoom = 0.2;
-            Map<Integer, FireZone> zonesCopy;
-            synchronized (zones) {
-                zonesCopy = new HashMap<>(zones);
-            }
-
-            for (FireZone z : zonesCopy.values()) {
-                int x = (int) (z.x1 * zoom);
-                int y = (int) (z.y1 * zoom);
-                int w = Math.max((int) ((z.x2 - z.x1) * zoom), 1);
-                int h = Math.max((int) ((z.y2 - z.y1) * zoom), 1);
-
-                boolean isOnFire;
-                String severity = null;
-
-                synchronized (activeFires) {
-                    isOnFire = activeFires.containsKey(z.id);
-                    if (isOnFire) {
-                        severity = fireSeverity.get(z.id);
-                    }
-                }
-                if (isOnFire) {
-                    if (severity != null && severity.equalsIgnoreCase("Low")) {
-                        g.setColor(Color.YELLOW);
-                    } else if (severity != null && severity.equalsIgnoreCase("Moderate")) {
-                        g.setColor(Color.ORANGE);
-                    } else if (severity != null && severity.equalsIgnoreCase("High")) {
-                        g.setColor(Color.RED);
-                    } else {
-                        g.setColor(Color.ORANGE); // fallback if severity text is unexpected
-                    }
-                } else {
-                    g.setColor(Color.LIGHT_GRAY);
-                }
-                g.fillRect(x, y, w, h);
-
-                g.setColor(Color.BLACK);
-                g.drawRect(x, y, w, h);
-                g.drawString("Zone " + z.id, x + 2, y + 12);
-
-                if (isOnFire) {
-                    g.setColor(Color.RED);
-                    g.drawString("FIRE", x + 2, y + 25);
-                }
-            }
-
-            synchronized (dronePositions) {
-                g.setColor(Color.BLUE);
-                for (Point p : dronePositions.values()) {
-                    int dx = (int) (p.x * zoom);
-                    int dy = (int) (p.y * zoom);
-                    g.fillOval(dx - 5, dy - 5, 10, 10);
-                }
+                String msg = "EVENT," + time + "," + zoneId + "," + type + "," + severity + "," + centerX + "," + centerY;
+                sendMessage(msg);
+                System.out.println("[FireIncident] Sent event for zone " + zoneId);
             }
         }
+    }
+
+    private void sendMessage(String msg) throws Exception {
+        byte[] data = msg.getBytes();
+        DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
+        socket.send(packet);
+    }
+
+    public static void main(String[] args) throws Exception {
+        FireIncidentSubsystem fire = new FireIncidentSubsystem("localhost", 7000);
+        fire.readZones("sample_zone_file.csv");
+        fire.readEvents("sample_event_file.csv");
     }
 }
