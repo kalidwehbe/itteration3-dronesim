@@ -98,8 +98,8 @@ public class FireGUI extends JFrame {
         zonePanel.setZones(zones);
     }
 
-    public void setZoneOnFire(int zoneId, boolean onFire) {
-        zonePanel.setZoneOnFire(zoneId, onFire);
+    public void setZoneOnFire(int zoneId, boolean onFire, String severity) {
+        zonePanel.setZoneOnFire(zoneId, onFire, severity);
     }
 
 
@@ -108,6 +108,7 @@ public class FireGUI extends JFrame {
         private final Map<Integer, FireZone> zones = new HashMap<>();
         private final Map<Integer, Point> dronePositions = new HashMap<>();
         private final Map<Integer, Integer> activeFires = new HashMap<>(); // count of active fires per zone
+        private final Map<Integer, String> fireSeverity = new HashMap<>();
 
         public void setZones(Map<Integer, FireZone> newZones) {
             synchronized (zones) {
@@ -125,18 +126,22 @@ public class FireGUI extends JFrame {
         }
 
         // Increment or decrement fire count for a zone
-        public void setZoneOnFire(int zoneId, boolean onFire) {
+        public void setZoneOnFire(int zoneId, boolean onFire, String severity) {
             synchronized (activeFires) {
                 int count = activeFires.getOrDefault(zoneId, 0);
+
                 if (onFire) {
-                    count++; // new fire event
-                } else {
-                    count--; // fire completed
-                }
-                if (count <= 0) {
-                    activeFires.remove(zoneId); // no more fires
-                } else {
+                    count++; //New fire event
                     activeFires.put(zoneId, count);
+                    fireSeverity.put(zoneId, severity);
+                } else {
+                    count--;
+                    if (count <= 0) { //No more fire
+                        activeFires.remove(zoneId);
+                        fireSeverity.remove(zoneId);
+                    } else {
+                        activeFires.put(zoneId, count);
+                    }
                 }
             }
             SwingUtilities.invokeLater(this::repaint);
@@ -162,14 +167,26 @@ public class FireGUI extends JFrame {
                 int h = Math.max((int) ((z.y2 - z.y1) * zoom), 1);
 
                 boolean isOnFire;
+                String severity = null;
+
                 synchronized (activeFires) {
                     isOnFire = activeFires.containsKey(z.id);
+                    if (isOnFire) {
+                        severity = fireSeverity.get(z.id);
+                    }
                 }
-
                 if (isOnFire) {
-                    g.setColor(Color.ORANGE);   // zone turns orange when on fire
+                    if (severity != null && severity.equalsIgnoreCase("Low")) {
+                        g.setColor(Color.YELLOW);
+                    } else if (severity != null && severity.equalsIgnoreCase("Moderate")) {
+                        g.setColor(Color.ORANGE);
+                    } else if (severity != null && severity.equalsIgnoreCase("High")) {
+                        g.setColor(Color.RED);
+                    } else {
+                        g.setColor(Color.ORANGE); // fallback if severity text is unexpected
+                    }
                 } else {
-                    g.setColor(Color.LIGHT_GRAY); // normal zone color
+                    g.setColor(Color.LIGHT_GRAY);
                 }
                 g.fillRect(x, y, w, h);
 
@@ -184,7 +201,7 @@ public class FireGUI extends JFrame {
             }
 
             synchronized (dronePositions) {
-                g.setColor(Color.RED);
+                g.setColor(Color.BLUE);
                 for (Point p : dronePositions.values()) {
                     int dx = (int) (p.x * zoom);
                     int dy = (int) (p.y * zoom);
