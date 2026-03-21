@@ -86,7 +86,7 @@ public class SchedulerUDP {
         FireEvent event = new FireEvent(time, zoneId, type, severity, x, y);
         pendingEvents.add(event);
 
-        gui.setZoneOnFire(zoneId, true);
+        gui.setZoneOnFire(zoneId, true, severity);
         System.out.println("[Scheduler] New fire event: Zone " + zoneId + " Severity: " + severity);
     }
 
@@ -215,7 +215,7 @@ public class SchedulerUDP {
             drone.state = "IDLE";
         }
 
-        gui.setZoneOnFire(zoneId, false);
+        gui.setZoneOnFire(zoneId, false, null);
         gui.updateDroneStatus(droneId, "IDLE");
 
         System.out.println("[Scheduler] Drone " + droneId + " completed zone " + zoneId);
