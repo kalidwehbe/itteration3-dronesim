@@ -59,8 +59,8 @@ public class FireGUI extends JFrame {
         panel.add(Box.createVerticalStrut(12));
 
         panel.add(createLegendSectionTitle("Drone"));
-        panel.add(createLegendItem(Color.BLUE, "Normal"));
-        panel.add(createLegendItem(Color.WHITE, "Extinguishing"));
+        panel.add(createLegendItem(Color.WHITE, "Normal"));
+        panel.add(createLegendItem(Color.BLUE, "Extinguishing"));
 
         return panel;
     }
@@ -266,9 +266,9 @@ public class FireGUI extends JFrame {
                         status = droneStatuses.get(droneId);
                     }
                     if (status != null && status.equalsIgnoreCase("EXTINGUISHING")) {
-                        g.setColor(Color.WHITE); //White while extinguishing
+                        g.setColor(Color.BLUE); //White while extinguishing
                     } else {
-                        g.setColor(Color.BLUE); //Blue while not extinguishing
+                        g.setColor(Color.WHITE); //Blue while not extinguishing
                     }
                     int dx = (int) (p.x * zoom);
                     int dy = (int) (p.y * zoom);
