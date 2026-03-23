@@ -66,6 +66,8 @@ public class FireIncidentSubsystem {
                 String type = p[2].trim();
                 String severity = p[3].trim();
 
+                FaultType faultType = (p.length >= 5) ? FaultType.fromString(p[4]) : FaultType.NONE; // Parse the fault type from the csv
+
                 FireZone zone = zones.get(zoneId);
                 if (zone == null) {
                     System.out.println("[FireIncident] ERROR: Zone not found for zoneId=" + zoneId);
@@ -75,7 +77,7 @@ public class FireIncidentSubsystem {
                 int centerX = zone.centerX();
                 int centerY = zone.centerY();
 
-                int currentTime = new FireEvent(time, zoneId, type, severity, centerX, centerY).getIntTime();
+                int currentTime = new FireEvent(time, zoneId, type, severity, centerX, centerY, faultType).getIntTime();
                 if (prevEventTime != -1) {
                     int diffSeconds = currentTime - prevEventTime;
                     if (diffSeconds > 0) {
@@ -84,7 +86,7 @@ public class FireIncidentSubsystem {
                 }
                 prevEventTime = currentTime;
 
-                String msg = "EVENT," + time + "," + zoneId + "," + type + "," + severity + "," + centerX + "," + centerY;
+                String msg = "EVENT," + time + "," + zoneId + "," + type + "," + severity + "," + centerX + "," + centerY + "," + faultType.name();
                 sendMessage(msg);
                 System.out.println("[FireIncident] Sent event for zone " + zoneId);
             }
