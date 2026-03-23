@@ -93,29 +93,29 @@ All other event/state combinations are ignored with appropriate logging (private
 ## Team Responsibilities
 
 ### Iteration 4:
-Kalid - 
-Halden - 
-Jesse -  Fault Injection, UML Class Diagram, GUI fixes from iteration 3
-Chukwuemeka - 
-Sarvesh - 
+- Kalid -
+- Halden -
+- Jesse - Fault Injection, UML Class Diagram, GUI fixes from iteration 3
+- Chukwuemeka -
+- Sarvesh -
 
 ### Iteration 3:
-Kalid - UDP implementation and message parsing/handling
-Halden - UML Class Diagram and README.txt
-Jesse -  Implemented DroneStateMachine with State pattern
-Emeka - FireGUI updates: real-time position updates, zone status display, multiple drone tracking 
-Fifth Member - Updated FireIncidentSubsystem to send events over UDP + event timing with TIME_FACTOR
+- Kalid - UDP implementation and message parsing/handling
+- Halden - UML Class Diagram and README.txt
+- Jesse - Implemented DroneStateMachine with State pattern
+- Emeka - FireGUI updates: real-time position updates, zone status display, multiple drone tracking
+- Fifth Member - Updated FireIncidentSubsystem to send events over UDP + event timing with TIME_FACTOR
 
 ### Iteration 2:
-Kalid - GUI implementation
-Halden - functionality and scheduling
-Jesse - Diagrams and state machine
+- Kalid - GUI implementation
+- Halden - functionality and scheduling
+- Jesse - Diagrams and state machine
 
 ### Iteration 1:
-Kalid - Scheduler and Drone System
-Halden - FireZones and FireEvents
-Jesse - FireSubsystem and diagrams
-Mohamed - GUI and Unit Testing 
+- Kalid - Scheduler and Drone System
+- Halden - FireZones and FireEvents
+- Jesse - FireSubsystem and diagrams
+- Mohamed - GUI and Unit Testing
 
 ## Setup Instructions
 
