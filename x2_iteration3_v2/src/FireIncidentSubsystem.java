@@ -13,10 +13,18 @@ public class FireIncidentSubsystem {
         this.socket = new DatagramSocket();
         this.schedulerAddress = InetAddress.getByName(schedulerHost);
         this.schedulerPort = schedulerPort;
+
+        EventLogger.log("FIRE_INCIDENT", "STARTED",
+                "schedulerHost=" + schedulerHost +
+                        " schedulerPort=" + schedulerPort +
+                        " localPort=" + socket.getLocalPort());
     }
 
     // --- Read zones from CSV and send to Scheduler ---
     public void readZones(String filename) throws Exception {
+        EventLogger.log("FIRE_INCIDENT", "READ_ZONES_STARTED",
+                "file=" + filename);
+
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
             boolean firstLine = true;
@@ -42,15 +50,23 @@ public class FireIncidentSubsystem {
                 String msg = "ZONE," + zoneId + "," + x1 + "," + y1 + "," + x2 + "," + y2;
                 sendMessage(msg);
 
-                System.out.println("[FireIncident] Sent zone " + zoneId);
+                //System.out.println("[FireIncident] Sent zone " + zoneId);
+                EventLogger.log("FIRE_INCIDENT", "ZONE_SENT",
+                        "zone=" + zoneId + " x1=" + x1 + " y1=" + y1 +
+                                " x2=" + x2 + " y2=" + y2);
             }
         }
+        EventLogger.log("FIRE_INCIDENT", "READ_ZONES_FINISHED",
+                "count=" + zones.size());
     }
 
     public static final double TIME_FACTOR = 0.1;
 
     // --- Read events from CSV and send to Scheduler ---
     public void readEvents(String filename) throws Exception {
+        EventLogger.log("FIRE_INCIDENT", "READ_EVENTS_STARTED",
+                "file=" + filename);
+
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
             boolean firstLine = true;
@@ -68,7 +84,10 @@ public class FireIncidentSubsystem {
 
                 FireZone zone = zones.get(zoneId);
                 if (zone == null) {
-                    System.out.println("[FireIncident] ERROR: Zone not found for zoneId=" + zoneId);
+                    //System.out.println("[FireIncident] ERROR: Zone not found for zoneId=" + zoneId);
+                    EventLogger.log("FIRE_INCIDENT", "ZONE_NOT_FOUND",
+                            "zone=" + zoneId + " time=" + time +
+                                    " type=" + type + " severity=" + severity);
                     continue;
                 }
 
@@ -79,22 +98,37 @@ public class FireIncidentSubsystem {
                 if (prevEventTime != -1) {
                     int diffSeconds = currentTime - prevEventTime;
                     if (diffSeconds > 0) {
-                        Thread.sleep((long) (diffSeconds * 1000 * TIME_FACTOR));
+                        long sleepMs = (long) (diffSeconds * 1000 * TIME_FACTOR);
+                        EventLogger.log("FIRE_INCIDENT", "EVENT_DELAY",
+                                "previousTime=" + prevEventTime +
+                                        " currentTime=" + currentTime +
+                                        " diffSeconds=" + diffSeconds +
+                                        " sleepMs=" + sleepMs);
+                        Thread.sleep(sleepMs);
                     }
                 }
                 prevEventTime = currentTime;
 
                 String msg = "EVENT," + time + "," + zoneId + "," + type + "," + severity + "," + centerX + "," + centerY;
                 sendMessage(msg);
-                System.out.println("[FireIncident] Sent event for zone " + zoneId);
+                //System.out.println("[FireIncident] Sent event for zone " + zoneId);
+                EventLogger.log("FIRE_INCIDENT", "EVENT_SENT",
+                        "time=" + time + " zone=" + zoneId +
+                                " type=" + type + " severity=" + severity +
+                                " centerX=" + centerX + " centerY=" + centerY);
             }
         }
+        EventLogger.log("FIRE_INCIDENT", "READ_EVENTS_FINISHED",
+                "file=" + filename);
     }
 
     private void sendMessage(String msg) throws Exception {
         byte[] data = msg.getBytes();
         DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
         socket.send(packet);
+        EventLogger.log("FIRE_INCIDENT", "MESSAGE_SENT",
+                "to=" + schedulerAddress + ":" + schedulerPort +
+                        " msg=" + msg);
     }
 
     public static void main(String[] args) throws Exception {
