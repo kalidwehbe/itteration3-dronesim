@@ -128,10 +128,27 @@ public class DroneSubsystem {
             EventLogger.log("DRONE", "EN_ROUTE_STARTED",
                     "drone=" + id + " zone=" + event.zoneId +
                             " targetX=" + event.centerX + " targetY=" + event.centerY);
+            
             if (event.faultType == FaultType.STUCK_IN_FLIGHT) {
-                simulateStuckInFlight(event.zoneId);
-                return;
+                EventLogger.log("DRONE", "FAULT_INJECTED_STUCK_IN_FLIGHT",
+                    "drone=" + id + " zone=" + event.zoneId + " x=" + droneX + " y=" + droneY);
+                for (int i = 0; i < 3; i++){
+                    sendStatus(DroneStatus.EN_ROUTE); 
+                    Thread.sleep(1000);       
+                }        
+
+                // Clearing the fault for the rest of the mission
+                event = new FireEvent (
+                    event.time,
+                    event.zoneId,
+                    event.type,
+                    event.severity,
+                    event.centerX,
+                    event.centerY,
+                    FaultType.NONE
+                );
             }
+            
             moveTo(event.centerX, event.centerY);
             sendArrival(event.zoneId);
             fsm.handleEvent(DroneEvent.ARRIVED_AT_ZONE);
@@ -215,14 +232,6 @@ public class DroneSubsystem {
         }
         EventLogger.log("DRONE", "MOVE_COMPLETED",
                 "drone=" + id + " x=" + droneX + " y=" + droneY);
-    }
-
-    private void simulateStuckInFlight(int zoneId) throws Exception {
-        // fault handling
-        EventLogger.log("DRONE", "FAULT_INJECTED_STUCK_IN_FLIGHT",
-                "drone=" + id + " zone=" + zoneId + " x=" + droneX + " y=" + droneY);
-        // Intentionally do not send DRONE_ARRIVED; scheduler timeout detects this.
-        Thread.sleep(2500);
     }
 
     private void handleNozzleFault(int zoneId) throws Exception {
