@@ -107,7 +107,6 @@ all states may transition to FAULTED or SOFT_FAULTED in the event of a hard or s
 
 Events:
 <br>
-
 ASSIGNMENT_RECEIVED: New mission assigned by scheduler
 <br>
 TAKEOFF_DONE: Takeoff sequence complete
@@ -126,7 +125,7 @@ All other event/state combinations are ignored with appropriate logging (private
 
 ## Testing
 
-### Unit Tests (JUnit 4)
+### Unit Tests (JUnit)
 
 | Test File | Tests |
 |-----------|-------|
@@ -151,6 +150,10 @@ Expected results:
 - GUI updates with drone positions and zone statuses
 - Multiple drones operate concurrently without interference
 
+Test files used for integration testing:
+- `sample_zone_file.csv` - Zones' Information
+- `sample_event_file.csv` - Events' Information
+
 ### Acceptance Testing
 
 The system demonstrates proper functioning in the presence of faults using testing files TEST_CASE_EVENT_1-4 and TEST_CASE_ZONE:
@@ -161,10 +164,6 @@ TEST_CASE_EVENT_1 | NONE | 1 | Drone extinguishes fire normally | Pass |
 TEST_CASE_EVENT_2 | STUCK_IN_FLIGHT | 2 | Soft fault logged, drone recovers, mission completes | Pass |
 TEST_CASE_EVENT_3 | NOZZLE_FAULT | 3 | Hard fault, drone offline, event requeued to another drone | Pass |
 TEST_CASE_EVENT_4 | CORRUPTED_MESSAGE | 7 | Malformed message logged, drone offline, event requeued | Pass |
-
-Test files used:
-- `sample_zone_file.csv` - Zones' Information
-- `sample_event_file.csv` - Events' Information
 
 ## Team Responsibilities
 
@@ -215,7 +214,10 @@ Mohamed - GUI and Unit Testing
 - sample_zone_file.csv
 - sample_event_file.csv
 - TEST_CASE_ZONE.csv
-- TEST_CASE_EVENT.csv
+- TEST_CASE_EVENT_1.csv
+- TEST_CASE_EVENT_2.csv
+- TEST_CASE_EVENT_3.csv
+- TEST_CASE_EVENT_4.csv
 - FaultTypeTest.java
 - FireEventTest.java
 - DroneSubsystemTest.java
