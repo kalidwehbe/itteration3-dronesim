@@ -124,6 +124,48 @@ REFILL_DONE: Refill process complete
 
 All other event/state combinations are ignored with appropriate logging (private ignore method).
 
+## Testing
+
+### Unit Tests (JUnit 4)
+
+| Test File | Tests |
+|-----------|-------|
+| FaultTypeTest.java | FaultType.fromString() parsing, case sensitivity, invalid input handling |
+| FireEventTest.java | Fault field storage, toString() includes fault type |
+| DroneSubsystemTest.java | NOZZLE_FAULT sets hardFaulted, STUCK_IN_FLIGHT does not, CORRUPTED_MESSAGE sets hardFaulted |
+| SchedulerTest.java | Fault stripping, soft/hard fault thresholds, event requeuing |
+| EventLoggerTest.java | Log file creation, appending, format, clear functionality |
+
+### Integration Testing
+
+All components function together via UDP communication. To run integration tests:
+
+1. Start SchedulerUDP
+2. Start FireIncidentSubsystem (parses sample_event_file.csv & sample_zone_file.csv)
+3. Start DroneSubsystem with ID 1
+4. Start DroneSubsystem with ID 2
+
+Expected results:
+- All components communicate via UDP without any crashes
+- Drones register with the scheduler and receive assignments
+- GUI updates with drone positions and zone statuses
+- Multiple drones operate concurrently without interference
+
+### Acceptance Testing
+
+The system demonstrates proper functioning in the presence of faults using `sample_event_file.csv`:
+
+| Fault Type | Zone | Expected Behavior | Status |
+|------------|------|-------------------|--------|
+| NONE | 1 | Drone extinguishes fire normally | Pass |
+| STUCK_IN_FLIGHT | 2 | Soft fault logged, drone recovers, mission completes | Pass |
+| NOZZLE_FAULT | 3 | Hard fault, drone offline, event requeued to another drone | Pass |
+| CORRUPTED_MESSAGE | 7 | Malformed message logged, drone offline, event requeued | Pass |
+
+Test files used:
+- `sample_zone_file.csv` - Zones' Information
+- `sample_event_file.csv` - Events' Information
+
 ## Team Responsibilities
 
 ### Iteration 4:
