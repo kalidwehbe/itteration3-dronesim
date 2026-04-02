@@ -31,6 +31,7 @@ public class SchedulerUDP {
     }
 
     public void start() throws Exception {
+        PerformanceMetricsGenerator.clearMetricsFile("performance_metrics.txt");
         EventLogger.log("SCHEDULER", "RUNNING",
                 "localPort=" + socket.getLocalPort());
 
@@ -66,6 +67,22 @@ public class SchedulerUDP {
 
         EventLogger.log("SCHEDULER", "PROCESS_TERMINATED",
                 "message=Scheduler main loop exited cleanly");
+
+        try {
+            // small delay so the drones can finish writing final log lines
+            Thread.sleep(1000);
+
+            PerformanceMetricsGenerator.generateFromEventLog(
+                    "event_log.txt",
+                    "performance_metrics.txt"
+            );
+
+            EventLogger.log("SCHEDULER", "METRICS_FILE_CREATED",
+                    "file=performance_metrics.txt");
+        } catch (Exception e) {
+            EventLogger.log("SCHEDULER", "METRICS_FILE_FAILED",
+                    "error=" + e.getMessage());
+        }
     }
 
     private void handleMessage(String msg, InetAddress sender, int port) throws Exception {
