@@ -184,6 +184,7 @@ public class SchedulerUDP {
         int x = Integer.parseInt(p[2]);
         int y = Integer.parseInt(p[3]);
         int agent = Integer.parseInt(p[4]);
+        double battery = Double.parseDouble(p[5]);
 
         DroneInfo drone = drones.get(droneId);
         if (drone == null) {
@@ -215,10 +216,11 @@ public class SchedulerUDP {
         drone.port = port;
         drone.position = new Point(x, y);
         drone.agent = agent;
+        drone.battery = battery;
+
         drone.state = "IDLE";
 
         FireEvent event;
-
 
         synchronized (pendingEvents) {
             event = chooseEventFor(drone);
@@ -259,6 +261,8 @@ public class SchedulerUDP {
         drone.state = "ASSIGNED";
         drone.assignedEvent = event;
         drone.assignedAtMs = System.currentTimeMillis();
+        drone.lastArrivedAtMs = 0;
+        drone.warningLogged = false;
 
         gui.updateZone(droneId, event.zoneId);
     }
@@ -305,6 +309,7 @@ public class SchedulerUDP {
         int droneId = Integer.parseInt(p[1]);
         String state = p[2];
         int agent = Integer.parseInt(p[3]);
+        double battery = Double.parseDouble(p[4]);
 
         DroneInfo drone = drones.get(droneId);
         if (drone == null) {
@@ -318,10 +323,12 @@ public class SchedulerUDP {
 
         drone.state = state;
         drone.agent = agent;
+        drone.battery = battery;
         drone.lastStatusAtMs = System.currentTimeMillis();
 
         gui.updateDroneStatus(droneId, state);
         gui.updateAgent(droneId, agent);
+        gui.updateBattery(droneId, battery);
 
         // fault handling: state-progress tracking and hard-fault reaction
         if ("EN_ROUTE".equalsIgnoreCase(state)) {
@@ -340,7 +347,7 @@ public class SchedulerUDP {
         }
 
         EventLogger.log("SCHEDULER", "DRONE_STATUS_RECEIVED",
-                "drone=" + droneId + " state=" + state + " agent=" + agent);
+                "drone=" + droneId + " state=" + state + " agent=" + agent + " battery%=" + String.format("%.2f", battery));
         checkForSystemShutdown();
     }
 
@@ -524,6 +531,8 @@ public class SchedulerUDP {
         drone.offline = true;
         drone.state = "FAULTED";
         gui.updateDroneStatus(drone.id, "FAULTED");
+        drone.assignedAtMs = 0;
+        drone.lastArrivedAtMs = 0;
         EventLogger.log("SCHEDULER", "DRONE_FAULT_DETECTED",
                 "drone=" + drone.id + " reason=" + reason);
 
@@ -775,6 +784,7 @@ public class SchedulerUDP {
         String state = "IDLE";
         Point position = new Point(0, 0);
         int agent = 14;
+        double battery = 100.0;
         int workload = 0;
         // fault handling: runtime tracking fields
         boolean offline = false;
