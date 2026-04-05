@@ -508,15 +508,6 @@ public class SchedulerUDP {
 
     }
 
-    private String getHighestSeverity(int zoneId) {
-        List<FireEvent> zoneEvents = eventsPerZone.get(zoneId);
-        if (zoneEvents == null || zoneEvents.isEmpty()) return "0"; // grey
-
-        // Example: assuming severity is "LOW", "MEDIUM", "HIGH"
-        if (zoneEvents.stream().anyMatch(e -> "HIGH".equalsIgnoreCase(e.severity))) return "HIGH";
-        if (zoneEvents.stream().anyMatch(e -> "MEDIUM".equalsIgnoreCase(e.severity))) return "MEDIUM";
-        return "LOW";
-    }
 
     private void markDroneFaultAndRequeue(DroneInfo drone, String reason) {
 
