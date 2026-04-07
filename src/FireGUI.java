@@ -1,10 +1,10 @@
-import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import javax.swing.*;
 
 public class FireGUI extends JFrame {
 
@@ -14,6 +14,7 @@ public class FireGUI extends JFrame {
     private Map<Integer, JLabel> droneStatusMap = new ConcurrentHashMap<>();
     private Map<Integer, JLabel> droneZoneMap = new ConcurrentHashMap<>();
     private Map<Integer, JLabel> droneAgentMap = new ConcurrentHashMap<>();
+    private Map<Integer, JLabel> droneBatteryMap = new ConcurrentHashMap<>();
 
     // --- Panels ---
     private JPanel droneInfoPanel;
@@ -122,15 +123,18 @@ public class FireGUI extends JFrame {
         JLabel statusLabel = new JLabel("State: IDLE");
         JLabel zoneLabel = new JLabel("Zone: -");
         JLabel agentLabel = new JLabel("Agent: 14L");
+        JLabel batteryLabel = new JLabel("Battery: 100%");
 
         droneStatusMap.put(id, statusLabel);
         droneZoneMap.put(id, zoneLabel);
         droneAgentMap.put(id, agentLabel);
+        droneBatteryMap.put(id, batteryLabel);
 
         panel.add(idLabel);
         panel.add(statusLabel);
         panel.add(zoneLabel);
         panel.add(agentLabel);
+        panel.add(batteryLabel);
 
         droneInfoPanel.add(panel);
         revalidate();
@@ -157,6 +161,13 @@ public class FireGUI extends JFrame {
         SwingUtilities.invokeLater(() -> {
             JLabel label = droneAgentMap.get(id);
             if (label != null) label.setText("Agent: " + agent + "L");
+        });
+    }
+
+    public void updateBattery(int id, double battery) {
+        SwingUtilities.invokeLater(() -> {
+            JLabel label = droneBatteryMap.get(id);
+            if (label != null) label.setText("Battery: " + String.format("%.2f", battery) + "%");
         });
     }
 

@@ -17,6 +17,7 @@ enum DroneEvent {
     TAKEOFF_DONE,
     ARRIVED_AT_ZONE,
     AGENT_EMPTY,
+    BATTERY_LOW,
     FIRE_DONE,
     RETURNED_TO_BASE,
     REFILL_DONE
@@ -62,6 +63,9 @@ public class DroneStateMachine {
             case AGENT_EMPTY:
                 current.onAgentEmpty(this);
                 break;
+            case BATTERY_LOW:
+                current.onBatteryLow(this);
+                break;
             case FIRE_DONE:
                 current.onFireDone(this);
                 break;
@@ -90,6 +94,8 @@ public class DroneStateMachine {
 
         void onAgentEmpty(DroneStateMachine fsm);
 
+        void onBatteryLow(DroneStateMachine fsm);
+
         void onFireDone(DroneStateMachine fsm);
 
         void onReturnedToBase(DroneStateMachine fsm);
@@ -107,6 +113,7 @@ public class DroneStateMachine {
         public void onTakeoffDone(DroneStateMachine fsm) { ignore("TAKEOFF_DONE"); }
         public void onArrivedAtZone(DroneStateMachine fsm) { ignore("ARRIVED_AT_ZONE"); }
         public void onAgentEmpty(DroneStateMachine fsm) { ignore("AGENT_EMPTY"); }
+        public void onBatteryLow(DroneStateMachine fsm) { ignore("BATTERY_LOW"); }
         public void onFireDone(DroneStateMachine fsm) { ignore("FIRE_DONE"); }
         public void onReturnedToBase(DroneStateMachine fsm) { ignore("RETURNED_TO_BASE"); }
         public void onRefillDone(DroneStateMachine fsm) { ignore("REFILL_DONE"); }
@@ -126,6 +133,7 @@ public class DroneStateMachine {
         public void onAssignmentReceived(DroneStateMachine fsm) { ignore("ASSIGNMENT_RECEIVED"); }
         public void onArrivedAtZone(DroneStateMachine fsm) { ignore("ARRIVED_AT_ZONE"); }
         public void onAgentEmpty(DroneStateMachine fsm) { ignore("AGENT_EMPTY"); }
+        public void onBatteryLow(DroneStateMachine fsm) { ignore("BATTERY_LOW"); }
         public void onFireDone(DroneStateMachine fsm) { ignore("FIRE_DONE"); }
         public void onReturnedToBase(DroneStateMachine fsm) { ignore("RETURNED_TO_BASE"); }
         public void onRefillDone(DroneStateMachine fsm) { ignore("REFILL_DONE"); }
@@ -140,6 +148,10 @@ public class DroneStateMachine {
 
         public void onArrivedAtZone(DroneStateMachine fsm) {
             fsm.transitionTo(new ExtinguishingState(), DroneEvent.ARRIVED_AT_ZONE);
+        }
+
+        public void onBatteryLow(DroneStateMachine fsm) {
+            fsm.transitionTo(new ReturningState(), DroneEvent.BATTERY_LOW);
         }
 
         public void onAssignmentReceived(DroneStateMachine fsm) { ignore("ASSIGNMENT_RECEIVED"); }
@@ -159,6 +171,10 @@ public class DroneStateMachine {
 
         public void onAgentEmpty(DroneStateMachine fsm) {
             fsm.transitionTo(new ReturningState(), DroneEvent.AGENT_EMPTY);
+        }
+
+        public void onBatteryLow(DroneStateMachine fsm) {
+            fsm.transitionTo(new ReturningState(), DroneEvent.BATTERY_LOW);
         }
 
         public void onFireDone(DroneStateMachine fsm) {
@@ -187,6 +203,7 @@ public class DroneStateMachine {
         public void onTakeoffDone(DroneStateMachine fsm) { ignore("TAKEOFF_DONE"); }
         public void onArrivedAtZone(DroneStateMachine fsm) { ignore("ARRIVED_AT_ZONE"); }
         public void onAgentEmpty(DroneStateMachine fsm) { ignore("AGENT_EMPTY"); }
+        public void onBatteryLow(DroneStateMachine fsm) { ignore("BATTERY_LOW"); }
         public void onFireDone(DroneStateMachine fsm) { ignore("FIRE_DONE"); }
         public void onRefillDone(DroneStateMachine fsm) { ignore("REFILL_DONE"); }
 
@@ -206,6 +223,7 @@ public class DroneStateMachine {
         public void onTakeoffDone(DroneStateMachine fsm) { ignore("TAKEOFF_DONE"); }
         public void onArrivedAtZone(DroneStateMachine fsm) { ignore("ARRIVED_AT_ZONE"); }
         public void onAgentEmpty(DroneStateMachine fsm) { ignore("AGENT_EMPTY"); }
+        public void onBatteryLow(DroneStateMachine fsm) { ignore("BATTERY_LOW"); }
         public void onFireDone(DroneStateMachine fsm) { ignore("FIRE_DONE"); }
         public void onReturnedToBase(DroneStateMachine fsm) { ignore("RETURNED_TO_BASE"); }
 

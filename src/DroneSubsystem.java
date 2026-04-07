@@ -9,12 +9,20 @@ public class DroneSubsystem {
     private final InetAddress schedulerAddress;
     private final int schedulerPort;
 
-    private DatagramSocket socket;
+    DatagramSocket socket;
     private final DroneStateMachine fsm;
 
     private int droneX = 0;
     private int droneY = 0;
     private int agent = 14;
+    double battery = 100.0;
+
+    // battery constants
+    private static final double BATTERY_SAFETY_TOLERANCE = 5.0;
+    private static final int UNITS_TRAVELLED_TO_DRAIN_1_PERCENT_BATTERY = 100;       // 1% per 100 units travelled
+    static final int BATTERY_DRAIN_PER_EXTINGUISH_TICK = 1; // 2% per extinguishing tick
+    private static final int BATTERY_DRAIN_PER_HOVER_SECOND = 1;     // 1% per second hover
+
     // fault handling
     private volatile boolean hardFaulted = false;
 
@@ -164,6 +172,11 @@ public class DroneSubsystem {
                 return;
             }
 
+            // Make sure FSM is in correct state before takeoff
+            if (fsm.getState() == DroneStatus.IDLE) {
+                fsm.handleEvent(DroneEvent.ASSIGNMENT_RECEIVED);
+            }
+
             sendStatus(DroneStatus.TAKEOFF);
             EventLogger.log("DRONE", "TAKEOFF_STARTED",
                     "drone=" + id + " zone=" + event.zoneId);
@@ -174,9 +187,35 @@ public class DroneSubsystem {
             EventLogger.log("DRONE", "EN_ROUTE_STARTED",
                     "drone=" + id + " zone=" + event.zoneId +
                             " targetX=" + event.centerX + " targetY=" + event.centerY);
-            
 
-            moveTo(event.centerX, event.centerY, event);
+            boolean moveCompleted = moveTo(event.centerX, event.centerY, event);
+
+            while (!moveCompleted){
+                // mission aborted due to low battery
+                moveTo(0, 0, event);
+                agent = 14;
+                battery = 100.0;
+                sendStatus(DroneStatus.REFILLED);
+                fsm.handleEvent(DroneEvent.RETURNED_TO_BASE);
+                fsm.handleEvent(DroneEvent.REFILL_DONE);
+
+                fsm.handleEvent(DroneEvent.ASSIGNMENT_RECEIVED);
+                
+                // retry mission
+                sendStatus(DroneStatus.TAKEOFF);
+                EventLogger.log("DRONE", "TAKEOFF_STARTED",
+                        "drone=" + id + " zone=" + event.zoneId);
+                Thread.sleep(500);
+                fsm.handleEvent(DroneEvent.TAKEOFF_DONE);
+
+                sendStatus(DroneStatus.EN_ROUTE);
+                EventLogger.log("DRONE", "EN_ROUTE_STARTED",
+                        "drone=" + id + " zone=" + event.zoneId +
+                                " targetX=" + event.centerX + " targetY=" + event.centerY);
+                
+                moveCompleted = moveTo(event.centerX, event.centerY, event);
+            }
+
             sendArrival(event.zoneId);
             fsm.handleEvent(DroneEvent.ARRIVED_AT_ZONE);
 
@@ -194,8 +233,27 @@ public class DroneSubsystem {
             }
 
             while (requiredAgent > 0 && agent > 0) {
+                double batteryNeededToReturn = getBatteryNeededToReturn();
+
+                if (battery - BATTERY_DRAIN_PER_EXTINGUISH_TICK < batteryNeededToReturn){
+                    EventLogger.log("DRONE", "LOW_BATTERY_ABORT_MISSION",
+                        "drone=" + id + " battery=" + String.format("%.2f", battery) + 
+                        " pending_drain%=" + BATTERY_DRAIN_PER_EXTINGUISH_TICK +
+                        " would leave " + String.format("%.2f", (battery - BATTERY_DRAIN_PER_EXTINGUISH_TICK)) + 
+                        " need " + String.format("%.2f", batteryNeededToReturn) + " to return"
+                    );
+
+                    fsm.handleEvent(DroneEvent.BATTERY_LOW);
+                    break;
+                }
+
                 agent--;
                 requiredAgent--;
+
+                battery = Math.max(0, battery - BATTERY_DRAIN_PER_EXTINGUISH_TICK);
+                EventLogger.log("DRONE", "EXTINGUISHING_TICK_BATTERY_DRAIN",
+                        "drone=" + id + " drain%=" + BATTERY_DRAIN_PER_EXTINGUISH_TICK + " battery%=" + String.format("%.2f", battery));
+
                 sendStatus(DroneStatus.EXTINGUISHING);
                 Thread.sleep(200);
             }
@@ -224,10 +282,11 @@ public class DroneSubsystem {
             fsm.handleEvent(DroneEvent.RETURNED_TO_BASE);
 
             agent = 14;
+            battery = 100.0;
             sendStatus(DroneStatus.REFILLED);
             //sendStatus(DroneStatus.REFILLED);
             EventLogger.log("DRONE", "REFILL_COMPLETE",
-                    "drone=" + id + " agent=" + agent);
+                    "drone=" + id + " agent=" + agent + " battery%=" + String.format("%.2f", battery));
             fsm.handleEvent(DroneEvent.RETURNED_TO_BASE);
             fsm.handleEvent(DroneEvent.REFILL_DONE);
             sendStatus(DroneStatus.IDLE);
@@ -246,7 +305,7 @@ public class DroneSubsystem {
         return 10;
     }
 
-    private void moveTo(int targetX, int targetY, FireEvent event) throws Exception {
+    boolean moveTo(int targetX, int targetY, FireEvent event) throws Exception {
         int startX = droneX;
         int startY = droneY;
         int steps = 20;
@@ -267,6 +326,37 @@ public class DroneSubsystem {
             int x = startX + (targetX - startX) * i / steps;
             int y = startY + (targetY - startY) * i / steps;
 
+            // calculates the distance traveled in the current step
+            int lastX = (i == 1) ? startX : (startX + (targetX - startX) * (i - 1) / steps);
+            int lastY = (i == 1) ? startY : (startY + (targetY - startY) * (i - 1) / steps);
+            int stepDistance = (int) Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+
+            // drains battery - 1% per 100 units
+            double drain = (double) stepDistance / UNITS_TRAVELLED_TO_DRAIN_1_PERCENT_BATTERY;
+            
+            // calculates how much battery would be needed to return from the new position
+            double newDistanceToBase = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+            double batteryNeededToReturn = (newDistanceToBase / UNITS_TRAVELLED_TO_DRAIN_1_PERCENT_BATTERY) + BATTERY_SAFETY_TOLERANCE;
+            
+            // if the drone wouldn't have enough battery to return after new step
+            if (battery - drain < batteryNeededToReturn && (targetX != 0 || targetY != 0)) {
+                EventLogger.log("DRONE", "LOW_BATTERY_ABORT_MISSION",
+                        "drone=" + id + " battery%=" + String.format("%.2f", battery) + 
+                        " pending_drain%=" + drain +
+                        " would leave " + String.format("%.2f", (battery - drain)) + 
+                        " need " + String.format("%.2f", batteryNeededToReturn) + "% to return");
+               
+                fsm.handleEvent(DroneEvent.BATTERY_LOW);
+                return false;  // Abort mission, return to base
+            }
+            
+            battery = Math.max(0, battery - drain);
+
+            sendStatus(fsm.getState());
+
+            EventLogger.log("DRONE", "MOVE_STEP_BATTERY_DRAIN",
+                    "drone=" + id + " step=" + i + " distance=" + stepDistance + " drain%=" + String.format("%.2f", drain) + " battery%=" + String.format("%.2f", battery));
+
             // Inject soft fault only if this drone has it
             if (!softFaultInjected && faultStep == i) {
                 softFaultInjected = true;
@@ -274,7 +364,15 @@ public class DroneSubsystem {
                         "drone=" + id + " at step " + i + " x=" + x + " y=" + y);
                 sendStatus(DroneStatus.SOFT_FAULTED);
 
-                Thread.sleep(3000); // simulate being stuck
+                // Hover for 3 seconds with battery drain each second
+                for (int second = 0; second < 3; second++) {
+                    Thread.sleep(1000);
+                    battery = Math.max(0, battery - BATTERY_DRAIN_PER_HOVER_SECOND);
+                    EventLogger.log("DRONE", "HOVER_SEC_BATTERY_DRAIN",
+                            "drone=" + id + " drain%=" + BATTERY_DRAIN_PER_HOVER_SECOND + " battery%=" + String.format("%.2f", battery));
+                    sendStatus(DroneStatus.SOFT_FAULTED);
+                }
+
                 sendStatus(DroneStatus.EN_ROUTE);
                 event.faultType = FaultType.NONE;
                 EventLogger.log("DRONE", "SOFT_FAULT_CLEARED",
@@ -287,6 +385,7 @@ public class DroneSubsystem {
 
         EventLogger.log("DRONE", "MOVE_COMPLETED",
                 "drone=" + id + " x=" + droneX + " y=" + droneY);
+        return true;
     }
 
     private void handleNozzleFault(int zoneId) throws Exception {
@@ -305,17 +404,17 @@ public class DroneSubsystem {
     }
 
     private void sendReady() throws Exception {
-        send("READY," + id + "," + droneX + "," + droneY + "," + agent);
+        send("READY," + id + "," + droneX + "," + droneY + "," + agent + "," + String.format("%.2f", battery));
         //System.out.println("[Drone " + id + "] READY");
         EventLogger.log("DRONE", "READY_SENT",
-                "drone=" + id + " x=" + droneX + " y=" + droneY + " agent=" + agent);
+                "drone=" + id + " x=" + droneX + " y=" + droneY + " agent=" + agent + " battery%=" + String.format("%.2f", battery));
     }
 
     private void sendStatus(DroneStatus status) throws Exception {
-        send("DRONE_STATUS," + id + "," + status + "," + agent);
+        send("DRONE_STATUS," + id + "," + status + "," + agent + "," + String.format("%.2f", battery));
         //System.out.println("[Drone " + id + "] Status: " + status + " Agent: " + agent);
         EventLogger.log("DRONE", "STATUS_SENT",
-                "drone=" + id + " status=" + status + " agent=" + agent);
+                "drone=" + id + " status=" + status + " agent=" + agent + " battery%=" + String.format("%.2f", battery));
     }
 
     private void sendPosition(int x, int y) throws Exception {
@@ -362,6 +461,7 @@ public class DroneSubsystem {
         moveTo(0, 0, dummy);
 
         agent = 14;
+        battery = 100.0;
         sendStatus(DroneStatus.REFILLED);
         fsm.handleEvent(DroneEvent.RETURNED_TO_BASE);
         fsm.handleEvent(DroneEvent.REFILL_DONE);
@@ -370,6 +470,11 @@ public class DroneSubsystem {
 
         EventLogger.log("DRONE", "RETURN_TO_BASE_COMPLETE",
                 "drone=" + id + " x=" + droneX + " y=" + droneY + " agent=" + agent);
+    }
+
+    double getBatteryNeededToReturn() {
+        double distanceToBase = Math.sqrt(Math.pow(droneX, 2) + Math.pow(droneY, 2));
+        return (distanceToBase / UNITS_TRAVELLED_TO_DRAIN_1_PERCENT_BATTERY) + BATTERY_SAFETY_TOLERANCE;
     }
 
     public static void main(String[] args) throws Exception {

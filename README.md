@@ -1,4 +1,4 @@
-# README – Multi-Drone Fire Response System - Iteration 4
+# README – Multi-Drone Fire Response System - Iteration 5
 
 ## Overview
 
@@ -125,16 +125,6 @@ All other event/state combinations are ignored with appropriate logging (private
 
 ## Testing
 
-### Unit Tests (JUnit)
-
-| Test File | Tests |
-|-----------|-------|
-| FaultTypeTest.java | FaultType.fromString() parsing, case sensitivity, invalid input handling |
-| FireEventTest.java | Fault field storage, toString() includes fault type |
-| DroneSubsystemTest.java | NOZZLE_FAULT sets hardFaulted, STUCK_IN_FLIGHT does not, CORRUPTED_MESSAGE sets hardFaulted |
-| SchedulerTest.java | Fault stripping, soft/hard fault thresholds, event requeuing |
-| EventLoggerTest.java | Log file creation, appending, format, clear functionality |
-
 ### Integration Testing
 
 All components function together via UDP communication. To run integration tests:
@@ -166,6 +156,19 @@ TEST_CASE_EVENT_3 | NOZZLE_FAULT | 3 | Hard fault, drone offline, event requeued
 TEST_CASE_EVENT_4 | CORRUPTED_MESSAGE | 7 | Malformed message logged, drone offline, event requeued | Pass |
 
 ## Team Responsibilities
+
+### Iteration 5:
+Kalid - Testing, ReadMe, Fixing drone logic
+<br>
+Halden - Battery implementation, class diagram, timing diagram
+<br>
+Jesse - Class diagram, Helped with battery logic
+<br>
+Sarvesh - Performance metrics logging
+<br>
+Chukwuemeka - Sequence Diagram, bug fixes, helped with gui logic
+
+
 
 ### Iteration 4:
 Kalid - GUI updates + revisions to fault handling

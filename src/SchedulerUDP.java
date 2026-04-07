@@ -175,7 +175,6 @@ public class SchedulerUDP {
                         " x=" + x + " y=" + y +
                         " faultType=" + faultType +
                         " pendingCount=" + pendingEvents.size());
-
     }
 
     private void handleReady(String msg, InetAddress sender, int port) throws Exception {
@@ -184,6 +183,7 @@ public class SchedulerUDP {
         int x = Integer.parseInt(p[2]);
         int y = Integer.parseInt(p[3]);
         int agent = Integer.parseInt(p[4]);
+        double battery = Double.parseDouble(p[5]);
 
         DroneInfo drone = drones.get(droneId);
         if (drone == null) {
@@ -215,10 +215,11 @@ public class SchedulerUDP {
         drone.port = port;
         drone.position = new Point(x, y);
         drone.agent = agent;
+        drone.battery = battery;
+
         drone.state = "IDLE";
 
         FireEvent event;
-
 
         synchronized (pendingEvents) {
             event = chooseEventFor(drone);
@@ -259,6 +260,8 @@ public class SchedulerUDP {
         drone.state = "ASSIGNED";
         drone.assignedEvent = event;
         drone.assignedAtMs = System.currentTimeMillis();
+        drone.lastArrivedAtMs = 0;
+        drone.warningLogged = false;
 
         gui.updateZone(droneId, event.zoneId);
     }
@@ -305,6 +308,7 @@ public class SchedulerUDP {
         int droneId = Integer.parseInt(p[1]);
         String state = p[2];
         int agent = Integer.parseInt(p[3]);
+        double battery = Double.parseDouble(p[4]);
 
         DroneInfo drone = drones.get(droneId);
         if (drone == null) {
@@ -318,10 +322,12 @@ public class SchedulerUDP {
 
         drone.state = state;
         drone.agent = agent;
+        drone.battery = battery;
         drone.lastStatusAtMs = System.currentTimeMillis();
 
         gui.updateDroneStatus(droneId, state);
         gui.updateAgent(droneId, agent);
+        gui.updateBattery(droneId, battery);
 
         // fault handling: state-progress tracking and hard-fault reaction
         if ("EN_ROUTE".equalsIgnoreCase(state)) {
@@ -340,7 +346,7 @@ public class SchedulerUDP {
         }
 
         EventLogger.log("SCHEDULER", "DRONE_STATUS_RECEIVED",
-                "drone=" + droneId + " state=" + state + " agent=" + agent);
+                "drone=" + droneId + " state=" + state + " agent=" + agent + " battery%=" + String.format("%.2f", battery));
         checkForSystemShutdown();
     }
 
@@ -502,15 +508,6 @@ public class SchedulerUDP {
 
     }
 
-    private String getHighestSeverity(int zoneId) {
-        List<FireEvent> zoneEvents = eventsPerZone.get(zoneId);
-        if (zoneEvents == null || zoneEvents.isEmpty()) return "0"; // grey
-
-        // Example: assuming severity is "LOW", "MEDIUM", "HIGH"
-        if (zoneEvents.stream().anyMatch(e -> "HIGH".equalsIgnoreCase(e.severity))) return "HIGH";
-        if (zoneEvents.stream().anyMatch(e -> "MEDIUM".equalsIgnoreCase(e.severity))) return "MEDIUM";
-        return "LOW";
-    }
 
     private void markDroneFaultAndRequeue(DroneInfo drone, String reason) {
 
@@ -524,12 +521,13 @@ public class SchedulerUDP {
         drone.offline = true;
         drone.state = "FAULTED";
         gui.updateDroneStatus(drone.id, "FAULTED");
+        drone.assignedAtMs = 0;
+        drone.lastArrivedAtMs = 0;
         EventLogger.log("SCHEDULER", "DRONE_FAULT_DETECTED",
                 "drone=" + drone.id + " reason=" + reason);
 
         if (drone.assignedEvent != null) {
             FireEvent faultedEvent = drone.assignedEvent;
-
 
             List<FireEvent> zoneEvents = eventsPerZone.get(faultedEvent.zoneId);
             if (zoneEvents != null) {
@@ -542,7 +540,6 @@ public class SchedulerUDP {
                 }
             }
 
-
             FireEvent requeuedEvent = new FireEvent(
                     faultedEvent.time,
                     faultedEvent.zoneId,
@@ -552,81 +549,27 @@ public class SchedulerUDP {
                     faultedEvent.centerY,
                     FaultType.NONE
             );
+            
             pendingEvents.add(requeuedEvent);
 
+            List<FireEvent> currentZoneEvents = eventsPerZone.get(faultedEvent.zoneId);
+            if (currentZoneEvents != null) {
+                currentZoneEvents.remove(faultedEvent);
+            }
+
+            eventsPerZone.putIfAbsent(faultedEvent.zoneId, new ArrayList<>());
+            eventsPerZone.get(faultedEvent.zoneId).add(requeuedEvent);
+
+            gui.setZoneOnFire(faultedEvent.zoneId, true, faultedEvent.severity);
+
             EventLogger.log("SCHEDULER", "EVENT_REQUEUED_AFTER_FAULT",
-                    "drone=" + drone.id + " zone=" + requeuedEvent.zoneId);
+                    "drone=" + drone.id + " zone=" + requeuedEvent.zoneId +
+                    " severity=" + requeuedEvent.severity);
 
             drone.assignedEvent = null;
 
-
-            attemptReassignmentWithRetry(requeuedEvent);
-
-
             printEventsPerZone();
         }
-    }
-
-    private void attemptReassignmentWithRetry(FireEvent event) {
-        new Thread(() -> {
-            while (true) {
-                boolean assigned = false;
-
-                synchronized (pendingEvents) {
-
-                    // if already assigned by another thread → stop
-                    if (!pendingEvents.contains(event)) {
-                        return;
-                    }
-
-                    for (DroneInfo d : drones.values()) {
-                        if (!d.offline && "IDLE".equalsIgnoreCase(d.state)) {
-                            try {
-                                send("ASSIGN," + event.time + "," + event.zoneId + "," +
-                                                event.type + "," + event.severity + "," +
-                                                event.centerX + "," + event.centerY + "," +
-                                                event.faultType.name(),
-                                        d.address, d.port);
-
-
-                                d.state = "ASSIGNED";
-                                d.assignedEvent = event;
-                                d.assignedAtMs = System.currentTimeMillis();
-
-
-                                pendingEvents.remove(event);
-
-
-                                eventsPerZone.putIfAbsent(event.zoneId, new ArrayList<>());
-                                eventsPerZone.get(event.zoneId).add(event);
-
-                                gui.setZoneOnFire(event.zoneId, true, event.severity);
-                                gui.updateZone(d.id, event.zoneId);
-
-                                EventLogger.log("SCHEDULER", "REASSIGNED_AFTER_FAULT",
-                                        "drone=" + d.id + " zone=" + event.zoneId);
-
-                                printEventsPerZone();
-
-                                assigned = true;
-                                break;
-                            } catch (Exception e) {
-                                EventLogger.log("SCHEDULER", "REASSIGN_FAILED",
-                                        "drone=" + d.id + " error=" + e.getMessage());
-                            }
-                        }
-                    }
-                }
-
-                if (assigned) break;
-
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-        }).start();
     }
 
     private boolean allWorkFinished() {
@@ -775,6 +718,7 @@ public class SchedulerUDP {
         String state = "IDLE";
         Point position = new Point(0, 0);
         int agent = 14;
+        double battery = 100.0;
         int workload = 0;
         // fault handling: runtime tracking fields
         boolean offline = false;

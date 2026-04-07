@@ -60,7 +60,7 @@ public class FireIncidentSubsystem {
                 "count=" + zones.size());
     }
 
-    public static final double TIME_FACTOR = 0.1;
+    public static final double TIME_FACTOR = 0.01;
 
     // --- Read events from CSV and send to Scheduler ---
     public void readEvents(String filename) throws Exception {
@@ -141,7 +141,7 @@ public class FireIncidentSubsystem {
 
     public static void main(String[] args) throws Exception {
         FireIncidentSubsystem fire = new FireIncidentSubsystem("localhost", 7000);
-        fire.readZones("sample_zone_file.csv");
-        fire.readEvents("sample_event_file.csv");
+        fire.readZones("Final_zone_file_w26.csv");
+        fire.readEvents("Final_event_file_w26.csv"); // Final_event_file_w26.csv
     }
 }
