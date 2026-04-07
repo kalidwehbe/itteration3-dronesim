@@ -142,6 +142,6 @@ public class FireIncidentSubsystem {
     public static void main(String[] args) throws Exception {
         FireIncidentSubsystem fire = new FireIncidentSubsystem("localhost", 7000);
         fire.readZones("Final_zone_file_w26.csv");
-        fire.readEvents("Final_event_file_w26.csv");
+        fire.readEvents("Final_event_file_w26.csv"); // Final_event_file_w26.csv
     }
 }
