@@ -1,119 +1,84 @@
+import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
-import java.lang.reflect.Field;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static org.junit.Assert.*;
 
-/**
- * Unit tests for DroneSubsystem fault handling
- * Tests iteration 4 additions: hard fault (NOZZLE_FAULT, CORRUPTED_MESSAGE) vs soft fault (STUCK_IN_FLIGHT)
- */
 public class DroneSubsystemTest {
 
-    /**
-     * Mock socket that prevents actual UDP communication during testing
-     * Without this, tests would try to send real network packets or block waiting for responses
-     */
-    private static class MockSocket extends DatagramSocket {
-        public MockSocket() throws SocketException {
-            super(0); // Port 0 = any available port (not actually used)
-        }
+    private DroneSubsystem drone;
+    private Scheduler scheduler;
+    private FireGUI gui;
 
-        @Override
-        public void send(DatagramPacket packet) {
-            // Overridden to prevent UDP related errors in testing
-        }
+    private Set<DroneSubsystem> available;
+    private Set<DroneSubsystem> busy;
 
-        @Override
-        public void receive(DatagramPacket packet) {
-            // Overridden to prevent blocking while waiting for messages
-        }
+    @Before
+    public void setUp() {
+        scheduler = new Scheduler();
+        gui = new FireGUI();
+
+        drone = new DroneSubsystem(scheduler, gui);
+
+        available = ConcurrentHashMap.newKeySet();
+        busy = ConcurrentHashMap.newKeySet();
+
+        available.add(drone);
+        scheduler.assignDroneSets(available, busy);
+
+        // speed up simulation
+        FirefightingSimulation.SIMULATION_SPEED_UP_FACTOR = 1000;
+
+        drone.start();
+        scheduler.start();
     }
 
-    /**
-     * Test-only subclass that prevents the drone's main loop from running.
-     * This allows us to call private methods directly without the main thread interfering.
-     */
-    private static class TestDrone extends DroneSubsystem {
+    @After
+    public void tearDown() {
+        drone.interrupt();
+        scheduler.interrupt();
+    }
 
-        public TestDrone(int id, String host, int port) throws Exception {
-            super(id, host, port);
-            // Replace real socket with mock to avoid network errors during tests
-            Field socketField = DroneSubsystem.class.getDeclaredField("socket");
-            socketField.setAccessible(true);
-            socketField.set(this, new MockSocket());
-        }
+    // -------- TESTS --------
 
-        @Override
-        public void start() {
-            // Overridden to prevent the main loop from running
-            // We call test methods directly instead
-        }
+    @Test
+    public void testAssignEvent() {
+        FireEvent event = new FireEvent("10:00", 1, "Fire", "Low", 10, 10);
 
-        /**
-         * For testing - allows tests to reset hardFaulted state before each test.
-         */
-        public void forceHardFaulted(boolean value) throws Exception {
-            Field hardFaultedField = DroneSubsystem.class.getDeclaredField("hardFaulted");
-            hardFaultedField.setAccessible(true);
-            hardFaultedField.set(this, value);
-        }
+        drone.assignEvent(event);
 
-        /**
-         * For testing - allows tests to verify hardFaulted state.
-         */
-        public boolean isHardFaulted() throws Exception {
-            Field hardFaultedField = DroneSubsystem.class.getDeclaredField("hardFaulted");
-            hardFaultedField.setAccessible(true);
-            return (boolean) hardFaultedField.get(this);
-        }
+        assertEquals(event, drone.assignedEvent);
     }
 
     @Test
-    public void testNozzleFaultSetsHardFaulted() throws Exception {
-        TestDrone drone = new TestDrone(1, "localhost", 1000);
-        drone.forceHardFaulted(false);
+    public void testDroneBecomesBusy() throws InterruptedException {
+        FireEvent event = new FireEvent("10:00", 1, "Fire", "Low", 10, 10);
 
-        // Reflection used to access private handleNozzleFault method
-        // This allows testing the fault handling logic without modifying production code
-        java.lang.reflect.Method handleNozzleFault =
-                DroneSubsystem.class.getDeclaredMethod("handleNozzleFault", int.class);
-        handleNozzleFault.setAccessible(true);
+        scheduler.submitEvent(event);
 
-        handleNozzleFault.invoke(drone, 3);
+        // wait until drone becomes busy
+        int attempts = 0;
+        while (busy.isEmpty() && attempts < 20) {
+            Thread.sleep(50);
+            attempts++;
+        }
+        System.out.println(attempts);
 
-        assertTrue("NOZZLE_FAULT should set hardFaulted to true", drone.isHardFaulted());
+        assertTrue(busy.contains(drone));
+        assertFalse(available.contains(drone));
     }
 
     @Test
-    public void testStuckInFlightDoesNotHardFault() throws Exception {
-        TestDrone drone = new TestDrone(2, "localhost", 1000);
-        drone.forceHardFaulted(false);
+    public void testDroneReturnsToAvailableAfterFinish() throws InterruptedException {
+        FireEvent event = new FireEvent("10:00", 1, "Fire", "Low", 10, 10);
 
-        // Create event with STUCK_IN_FLIGHT fault type
-        FireEvent event = new FireEvent("14:03:25", 2, "REQUEST", "Moderate", 325, 1050, FaultType.STUCK_IN_FLIGHT);
+        scheduler.submitEvent(event);
 
-        // Verify the fault type is correctly identified
-        assertEquals(FaultType.STUCK_IN_FLIGHT, event.faultType);
+        Thread.sleep(800); // allow full cycle
 
-        // STUCK_IN_FLIGHT should NOT trigger a hard fault
-        assertFalse("STUCK_IN_FLIGHT should NOT set hardFaulted to true", drone.isHardFaulted());
-    }
-
-    @Test
-    public void testCorruptedMessageIsHardFault() throws Exception {
-        TestDrone drone = new TestDrone(3, "localhost", 1000);
-        drone.forceHardFaulted(false);
-
-        // Reflection used to access private sendCorruptedMessage method
-        // This allows testing the fault handling logic without modifying production code
-        java.lang.reflect.Method sendCorruptedMessage =
-                DroneSubsystem.class.getDeclaredMethod("sendCorruptedMessage", int.class);
-        sendCorruptedMessage.setAccessible(true);
-
-        sendCorruptedMessage.invoke(drone, 7);
-
-        assertTrue("CORRUPTED_MESSAGE should set hardFaulted to true", drone.isHardFaulted());
+        assertTrue(available.contains(drone));
     }
 }

@@ -1,53 +1,64 @@
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-/**
- * Unit tests for FireEvent iteration 4 additions
- * Tests that fault type is properly stored in FireEvent objects and
- * correctly displayed in the toString() method for logging purposes
- */
 public class FireEventTest {
 
-    @Test
-    public void testEventWithNozzleFault() {
-        // Creating an event with NOZZLE_FAULT and verifying that the fault type is stored correctly
-        FireEvent event = new FireEvent("14:03:40", 3, "FIRE", "High", 1050, 300, FaultType.NOZZLE_FAULT);
-        assertEquals(FaultType.NOZZLE_FAULT, event.faultType);
+    private FireEvent event1;
+    private FireEvent event2;
+    private FireEvent event3;
+
+    @Before
+    public void setUp() {
+        // HH:MM:SS format
+        event1 = new FireEvent("01:02:03", 1, "Fire", "High", 100, 200);
+
+        // MM:SS format
+        event2 = new FireEvent("10:30", 2, "Smoke", "Medium", 50, 75);
+
+        // SS format
+        event3 = new FireEvent("45", 3, "Heat", "Low", 10, 20);
+    }
+
+    @After
+    public void tearDown() {
+        event1 = null;
+        event2 = null;
+        event3 = null;
     }
 
     @Test
-    public void testEventWithStuckInFlight() {
-        // Creating an event with STUCK_IN_FLIGHT and verifying that the fault type is stored correctly
-        FireEvent event = new FireEvent("14:03:25", 2, "REQUEST", "Moderate", 325, 1050, FaultType.STUCK_IN_FLIGHT);
-        assertEquals(FaultType.STUCK_IN_FLIGHT, event.faultType);
+    public void testGetIntTime_HHMMSS() {
+        // 1 hour = 3600, 2 min = 120, 3 sec = 3 → total = 3723
+        assertEquals(3723, event1.getIntTime());
     }
 
     @Test
-    public void testEventWithCorruptedMessage() {
-        // Creating an event with CORRUPTED_MESSAGE and verifying that the fault type is stored correctly
-        FireEvent event = new FireEvent("14:04:00", 7, "REQUEST", "Low", 975, 1050, FaultType.CORRUPTED_MESSAGE);
-        assertEquals(FaultType.CORRUPTED_MESSAGE, event.faultType);
+    public void testGetIntTime_MMSS() {
+        // 10 min = 600, 30 sec = 30 → total = 630
+        assertEquals(630, event2.getIntTime());
     }
 
     @Test
-    public void testEventWithNoFault() {
-        // Creating an event with no fault and verifying that fault type defaults to NONE
-        FireEvent event = new FireEvent("14:03:15", 1, "FIRE", "Low", 350, 300, FaultType.NONE);
-        assertEquals(FaultType.NONE, event.faultType);
+    public void testGetIntTime_SS() {
+        // just seconds
+        assertEquals(45, event3.getIntTime());
     }
 
     @Test
-    public void testToStringIncludesFault() {
-        // toString() is used for logging and debugging -> fault type needs to be visible
-        FireEvent event = new FireEvent("14:03:40", 3, "FIRE", "High", 1050, 300, FaultType.NOZZLE_FAULT);
-        assertTrue("toString() should contain the fault type", event.toString().contains("NOZZLE_FAULT"));
+    public void testToString() {
+        String expected = "01:02:03 Zone 1 Fire High";
+        assertEquals(expected, event1.toString());
     }
 
     @Test
-    public void testToStringWithNoFault() {
-        // Even when there's no fault, toString() should show FAULT=NONE
-        FireEvent event = new FireEvent("14:03:15", 1, "FIRE", "Low", 350, 300, FaultType.NONE);
-        assertTrue("toString() should indicate FAULT=NONE when no fault present",
-                event.toString().contains("FAULT=NONE"));
+    public void testFieldsAssignedCorrectly() {
+        assertEquals("01:02:03", event1.time);
+        assertEquals(1, event1.zoneId);
+        assertEquals("Fire", event1.type);
+        assertEquals("High", event1.severity);
+        assertEquals(100, event1.centerX);
+        assertEquals(200, event1.centerY);
     }
 }
