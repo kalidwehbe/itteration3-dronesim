@@ -1,475 +1,567 @@
 PERFORMANCE METRICS
 ===================
 
-Fire Metrics
-------------
+Event Metrics
+-------------
 Zone 2 (eventTime=00:03:32, severity=Low)
-  Queue wait time: 00:00.027
-  Response time: 00:02.854
-  Time to extinguish: 00:05.009
-  Completed by drone: 12
+  Queue Wait Time: 00:00.109
+  Event Response Time: 00:02.706
+  Event Completion Time: 00:04.744
+  Completed by drone: 14
+  Service Time After Arrival: 00:02.038
 
 Zone 1 (eventTime=00:13:39, severity=Moderate)
-  Queue wait time: 00:00.004
-  Response time: 00:03.261
-  Time to extinguish: 00:13.312
-  Completed by drone: 20
+  Queue Wait Time: 00:00.026
+  Event Response Time: 00:02.818
+  Event Completion Time: 00:12.041
+  Completed by drone: 8
+  Service Time After Arrival: 00:09.223
 
 Zone 5 (eventTime=00:14:29, severity=Low)
-  Queue wait time: 00:00.005
-  Response time: 00:03.170
-  Time to extinguish: 00:05.401
+  Queue Wait Time: 00:00.029
+  Event Response Time: 00:02.807
+  Event Completion Time: 00:04.980
   Completed by drone: 17
+  Service Time After Arrival: 00:02.173
 
 Zone 3 (eventTime=00:16:16, severity=Moderate)
-  Queue wait time: 00:00.002
-  Response time: 00:03.203
-  Time to extinguish: 00:13.234
-  Completed by drone: 14
+  Queue Wait Time: 00:00.061
+  Event Response Time: 00:02.879
+  Event Completion Time: 00:12.086
+  Completed by drone: 18
+  Service Time After Arrival: 00:09.207
 
 Zone 4 (eventTime=00:17:21, severity=Moderate)
-  Queue wait time: 00:00.002
-  Response time: 00:03.214
-  Time to extinguish: 00:12.973
-  Completed by drone: 15
+  Queue Wait Time: 00:00.011
+  Event Response Time: 00:02.816
+  Event Completion Time: 00:11.992
+  Completed by drone: 1
+  Service Time After Arrival: 00:09.176
 
 Zone 1 (eventTime=00:47:28, severity=Low)
-  Queue wait time: 00:00.018
-  Response time: 00:03.126
-  Time to extinguish: 00:05.325
+  Queue Wait Time: 00:00.012
+  Event Response Time: 00:02.831
+  Event Completion Time: 00:04.957
   Completed by drone: 11
+  Service Time After Arrival: 00:02.126
 
 Zone 2 (eventTime=00:51:10, severity=Low)
-  Queue wait time: 00:00.004
-  Response time: 00:02.991
-  Time to extinguish: 00:05.480
-  Completed by drone: 6
+  Queue Wait Time: 00:00.010
+  Event Response Time: 00:02.794
+  Event Completion Time: 00:04.927
+  Completed by drone: 15
+  Service Time After Arrival: 00:02.133
 
 Zone 4 (eventTime=00:55:49, severity=High)
-  Queue wait time: 00:00.088
-  Response time: 00:03.500
-  Time to extinguish: 00:20.740
-  Completed by drone: 13
+  Queue Wait Time: 00:00.109
+  Event Response Time: 00:02.904
+  Event Completion Time: 00:19.010
+  Completed by drone: 2
+  Service Time After Arrival: 00:16.106
 
 Zone 5 (eventTime=00:55:58, severity=High)
-  Queue wait time: 00:00.005
-  Response time: 00:03.322
-  Time to extinguish: 00:20.258
-  Completed by drone: 1
+  Queue Wait Time: 00:00.015
+  Event Response Time: 00:02.793
+  Event Completion Time: 00:18.902
+  Completed by drone: 3
+  Service Time After Arrival: 00:16.109
 
 Zone 3 (eventTime=01:00:48, severity=High)
-  Queue wait time: 00:00.003
-  Response time: 00:03.042
-  Time to extinguish: 00:20.042
-  Completed by drone: 2
+  Queue Wait Time: 00:00.158
+  Event Response Time: 00:02.855
+  Event Completion Time: 00:19.008
+  Completed by drone: 11
+  Service Time After Arrival: 00:16.153
 
 Zone 1 (eventTime=01:16:12, severity=Low)
-  Queue wait time: 00:00.003
-  Response time: 00:02.740
-  Time to extinguish: 00:04.915
-  Completed by drone: 12
+  Queue Wait Time: 00:00.155
+  Event Response Time: 00:02.888
+  Event Completion Time: 00:05.027
+  Completed by drone: 10
+  Service Time After Arrival: 00:02.139
 
 Zone 5 (eventTime=01:24:54, severity=Low)
-  Queue wait time: 00:00.002
-  Response time: 00:03.608
-  Time to extinguish: 00:05.577
+  Queue Wait Time: 00:00.076
+  Event Response Time: 00:02.841
+  Event Completion Time: 00:04.957
   Completed by drone: 5
+  Service Time After Arrival: 00:02.116
 
 Zone 3 (eventTime=01:27:11, severity=High)
-  Queue wait time: 00:00.020
-  Response time: 00:11.012
-  Time to extinguish: 00:19.471
-  Completed by drone: 11
+  Queue Wait Time: 00:00.246
+  Event Response Time: 00:10.914
+  Event Completion Time: 00:19.197
+  Completed by drone: 12
+  Service Time After Arrival: 00:08.283
 
 Zone 4 (eventTime=01:48:35, severity=High)
-  Queue wait time: 00:00.032
-  Response time: 00:02.869
-  Time to extinguish: 00:16.620
-  Completed by drone: 3
+  Queue Wait Time: 00:00.050
+  Event Response Time: 00:02.787
+  Event Completion Time: 00:15.987
+  Completed by drone: 17
+  Service Time After Arrival: 00:13.200
 
 Zone 5 (eventTime=01:57:35, severity=High)
-  Queue wait time: 00:00.083
-  Response time: 00:02.957
-  Time to extinguish: 00:20.111
-  Completed by drone: 5
+  Queue Wait Time: 00:00.009
+  Event Response Time: 00:02.714
+  Event Completion Time: 00:18.918
+  Completed by drone: 2
+  Service Time After Arrival: 00:16.204
 
 Zone 2 (eventTime=01:59:24, severity=High)
-  Queue wait time: 00:00.074
-  Response time: 00:03.033
-  Time to extinguish: 00:20.379
-  Completed by drone: 2
+  Queue Wait Time: 00:00.030
+  Event Response Time: 00:02.726
+  Event Completion Time: 00:18.893
+  Completed by drone: 1
+  Service Time After Arrival: 00:16.167
 
 Zone 3 (eventTime=02:00:23, severity=High)
-  Queue wait time: 00:00.042
-  Response time: 00:02.955
-  Time to extinguish: 00:20.176
-  Completed by drone: 1
+  Queue Wait Time: 00:00.203
+  Event Response Time: 00:02.895
+  Event Completion Time: 00:19.047
+  Completed by drone: 5
+  Service Time After Arrival: 00:16.152
 
 Zone 1 (eventTime=02:01:54, severity=High)
-  Queue wait time: 00:00.010
-  Response time: 00:03.203
-  Time to extinguish: 00:20.749
-  Completed by drone: 19
+  Queue Wait Time: 00:00.012
+  Event Response Time: 00:02.750
+  Event Completion Time: 00:18.873
+  Completed by drone: 13
+  Service Time After Arrival: 00:16.123
 
 Zone 4 (eventTime=02:07:03, severity=Low)
-  Queue wait time: 00:00.080
-  Response time: 00:08.394
-  Time to extinguish: 00:08.836
-  Completed by drone: 8
+  Queue Wait Time: 00:00.044
+  Event Response Time: 00:07.332
+  Event Completion Time: 00:07.749
+  Completed by drone: 10
+  Service Time After Arrival: 00:00.417
 
 Zone 5 (eventTime=02:13:44, severity=High)
-  Queue wait time: 00:00.030
-  Response time: 00:11.650
-  Time to extinguish: 00:19.986
-  Completed by drone: 17
+  Queue Wait Time: 00:00.010
+  Event Response Time: 00:10.585
+  Event Completion Time: 00:19.276
+  Completed by drone: 3
+  Service Time After Arrival: 00:08.691
 
 Zone 2 (eventTime=02:30:12, severity=Low)
-  Queue wait time: 00:00.009
-  Response time: 00:03.304
-  Time to extinguish: 00:05.102
-  Completed by drone: 20
+  Queue Wait Time: 00:00.140
+  Event Response Time: 00:02.850
+  Event Completion Time: 00:04.944
+  Completed by drone: 10
+  Service Time After Arrival: 00:02.094
 
 Zone 3 (eventTime=02:31:45, severity=Moderate)
-  Queue wait time: 00:00.002
-  Response time: 00:03.175
-  Time to extinguish: 00:12.623
-  Completed by drone: 15
+  Queue Wait Time: 00:00.024
+  Event Response Time: 00:02.730
+  Event Completion Time: 00:12.232
+  Completed by drone: 18
+  Service Time After Arrival: 00:09.502
 
 Zone 4 (eventTime=02:31:55, severity=Moderate)
-  Queue wait time: 00:00.094
-  Response time: 00:03.181
-  Time to extinguish: 00:12.666
+  Queue Wait Time: 00:00.279
+  Event Response Time: 00:02.974
+  Event Completion Time: 00:12.459
   Completed by drone: 11
+  Service Time After Arrival: 00:09.485
 
 Zone 2 (eventTime=03:03:49, severity=Low)
-  Queue wait time: 00:00.031
-  Response time: 00:02.733
-  Time to extinguish: 00:04.894
-  Completed by drone: 20
+  Queue Wait Time: 00:00.073
+  Event Response Time: 00:02.772
+  Event Completion Time: 00:04.774
+  Completed by drone: 10
+  Service Time After Arrival: 00:02.002
 
 Zone 5 (eventTime=03:05:49, severity=High)
-  Queue wait time: 00:00.020
-  Response time: 00:02.840
-  Time to extinguish: 00:19.160
-  Completed by drone: 4
+  Queue Wait Time: 00:00.009
+  Event Response Time: 00:02.635
+  Event Completion Time: 00:18.306
+  Completed by drone: 14
+  Service Time After Arrival: 00:15.671
 
 Zone 4 (eventTime=03:49:06, severity=High)
-  Queue wait time: 00:00.005
-  Response time: 00:02.723
-  Time to extinguish: 00:19.327
-  Completed by drone: 6
+  Queue Wait Time: 00:00.057
+  Event Response Time: 00:02.625
+  Event Completion Time: 00:18.785
+  Completed by drone: 18
+  Service Time After Arrival: 00:16.160
 
 Zone 3 (eventTime=03:50:25, severity=Moderate)
-  Queue wait time: 00:00.030
-  Response time: 00:02.843
-  Time to extinguish: 00:12.152
-  Completed by drone: 7
+  Queue Wait Time: 00:00.064
+  Event Response Time: 00:02.714
+  Event Completion Time: 00:11.859
+  Completed by drone: 5
+  Service Time After Arrival: 00:09.145
 
 Zone 1 (eventTime=03:50:48, severity=Low)
-  Queue wait time: 00:00.020
-  Response time: 00:02.792
-  Time to extinguish: 00:04.956
-  Completed by drone: 20
+  Queue Wait Time: 00:00.351
+  Event Response Time: 00:03.019
+  Event Completion Time: 00:05.120
+  Completed by drone: 8
+  Service Time After Arrival: 00:02.101
 
 Zone 2 (eventTime=04:05:19, severity=Moderate)
-  Queue wait time: 00:00.066
-  Response time: 00:02.909
-  Time to extinguish: 00:12.196
-  Completed by drone: 20
+  Queue Wait Time: 00:00.131
+  Event Response Time: 00:02.824
+  Event Completion Time: 00:11.981
+  Completed by drone: 8
+  Service Time After Arrival: 00:09.157
 
 Zone 5 (eventTime=04:35:59, severity=High)
-  Queue wait time: 00:00.003
-  Response time: 00:02.801
-  Time to extinguish: 00:19.137
-  Completed by drone: 10
+  Queue Wait Time: 00:00.016
+  Event Response Time: 00:02.723
+  Event Completion Time: 00:18.983
+  Completed by drone: 14
+  Service Time After Arrival: 00:16.260
 
 Zone 4 (eventTime=04:57:36, severity=High)
-  Queue wait time: 00:00.003
-  Response time: 00:02.857
-  Time to extinguish: 00:19.283
-  Completed by drone: 16
+  Queue Wait Time: 00:00.465
+  Event Response Time: 00:03.195
+  Event Completion Time: 00:19.176
+  Completed by drone: 3
+  Service Time After Arrival: 00:15.981
 
 Zone 3 (eventTime=04:57:50, severity=Moderate)
-  Queue wait time: 00:00.127
-  Response time: 00:02.864
-  Time to extinguish: 00:12.209
-  Completed by drone: 12
+  Queue Wait Time: 00:00.462
+  Event Response Time: 00:03.193
+  Event Completion Time: 00:12.254
+  Completed by drone: 2
+  Service Time After Arrival: 00:09.061
 
 Zone 2 (eventTime=05:06:30, severity=Low)
-  Queue wait time: 00:00.038
-  Response time: 00:02.918
-  Time to extinguish: 00:05.098
-  Completed by drone: 9
+  Queue Wait Time: 00:00.235
+  Event Response Time: 00:02.948
+  Event Completion Time: 00:05.012
+  Completed by drone: 17
+  Service Time After Arrival: 00:02.064
 
 Zone 1 (eventTime=05:21:49, severity=Moderate)
-  Queue wait time: 00:00.021
-  Response time: 00:02.834
-  Time to extinguish: 00:09.139
-  Completed by drone: 1
+  Queue Wait Time: 00:00.025
+  Event Response Time: 00:02.726
+  Event Completion Time: 00:08.974
+  Completed by drone: 17
+  Service Time After Arrival: 00:06.248
 
 Zone 4 (eventTime=05:22:29, severity=Low)
-  Queue wait time: 00:00.002
-  Response time: N/A
-  Time to extinguish: 00:04.958
-  Completed by drone: 17
+  Queue Wait Time: 00:00.031
+  Event Response Time: N/A
+  Event Completion Time: 00:04.862
+  Completed by drone: 6
+  Service Time After Arrival: N/A
 
 Zone 1 (eventTime=05:28:46, severity=Low)
-  Queue wait time: 00:00.011
-  Response time: 00:06.519
-  Time to extinguish: 00:07.829
-  Completed by drone: 12
+  Queue Wait Time: 00:00.012
+  Event Response Time: 00:06.301
+  Event Completion Time: 00:07.538
+  Completed by drone: 5
+  Service Time After Arrival: 00:01.237
 
 Zone 5 (eventTime=05:49:12, severity=High)
-  Queue wait time: 00:00.081
-  Response time: 00:02.810
-  Time to extinguish: 00:19.114
-  Completed by drone: 16
+  Queue Wait Time: 00:00.010
+  Event Response Time: 00:02.603
+  Event Completion Time: 00:18.483
+  Completed by drone: 8
+  Service Time After Arrival: 00:15.880
 
 Zone 4 (eventTime=05:54:55, severity=High)
-  Queue wait time: 00:00.032
-  Response time: 00:02.744
-  Time to extinguish: 00:18.971
-  Completed by drone: 1
+  Queue Wait Time: 00:00.003
+  Event Response Time: 00:02.560
+  Event Completion Time: 00:18.573
+  Completed by drone: 2
+  Service Time After Arrival: 00:16.013
 
 Zone 2 (eventTime=06:09:34, severity=Low)
-  Queue wait time: 00:00.011
-  Response time: 00:02.919
-  Time to extinguish: 00:05.047
-  Completed by drone: 18
+  Queue Wait Time: 00:00.022
+  Event Response Time: 00:02.728
+  Event Completion Time: 00:04.815
+  Completed by drone: 17
+  Service Time After Arrival: 00:02.087
 
 Zone 1 (eventTime=06:21:16, severity=High)
-  Queue wait time: 00:00.012
-  Response time: 00:02.766
-  Time to extinguish: 00:21.763
-  Completed by drone: 18
+  Queue Wait Time: 00:00.033
+  Event Response Time: 00:02.736
+  Event Completion Time: 00:18.721
+  Completed by drone: 6
+  Service Time After Arrival: 00:15.985
 
 Zone 3 (eventTime=06:23:01, severity=High)
-  Queue wait time: 00:00.025
-  Response time: 00:02.796
-  Time to extinguish: 00:18.863
-  Completed by drone: 15
+  Queue Wait Time: 00:00.323
+  Event Response Time: 00:03.089
+  Event Completion Time: 00:16.484
+  Completed by drone: 12
+  Service Time After Arrival: 00:13.395
 
 Zone 4 (eventTime=06:31:02, severity=High)
-  Queue wait time: 00:00.014
-  Response time: 00:02.743
-  Time to extinguish: 00:22.230
-  Completed by drone: 11
+  Queue Wait Time: 00:00.079
+  Event Response Time: 00:02.784
+  Event Completion Time: 00:18.773
+  Completed by drone: 2
+  Service Time After Arrival: 00:15.989
 
 Zone 3 (eventTime=06:42:12, severity=Low)
-  Queue wait time: 00:00.049
-  Response time: 00:10.585
-  Time to extinguish: 00:11.378
-  Completed by drone: 13
+  Queue Wait Time: 00:00.155
+  Event Response Time: 00:07.166
+  Event Completion Time: 00:07.590
+  Completed by drone: 7
+  Service Time After Arrival: 00:00.424
 
 Zone 5 (eventTime=06:44:30, severity=High)
-  Queue wait time: 00:00.002
-  Response time: 00:05.015
-  Time to extinguish: 00:20.591
-  Completed by drone: 10
+  Queue Wait Time: 00:00.344
+  Event Response Time: 00:03.062
+  Event Completion Time: 00:19.057
+  Completed by drone: 8
+  Service Time After Arrival: 00:15.995
 
 Zone 1 (eventTime=06:44:59, severity=Low)
-  Queue wait time: 00:00.020
-  Response time: N/A
-  Time to extinguish: 00:07.612
-  Completed by drone: 3
+  Queue Wait Time: 00:00.031
+  Event Response Time: N/A
+  Event Completion Time: 00:04.877
+  Completed by drone: 16
+  Service Time After Arrival: N/A
 
 Zone 2 (eventTime=06:54:24, severity=High)
-  Queue wait time: 00:00.035
-  Response time: 00:05.511
-  Time to extinguish: 00:20.759
-  Completed by drone: 19
+  Queue Wait Time: 00:00.094
+  Event Response Time: 00:02.820
+  Event Completion Time: 00:18.783
+  Completed by drone: 11
+  Service Time After Arrival: 00:15.963
 
 Zone 4 (eventTime=06:56:58, severity=Low)
-  Queue wait time: 00:00.026
-  Response time: 00:05.248
-  Time to extinguish: 00:06.445
-  Completed by drone: 14
+  Queue Wait Time: 00:00.110
+  Event Response Time: N/A
+  Event Completion Time: 00:04.953
+  Completed by drone: 9
+  Service Time After Arrival: N/A
 
 Zone 1 (eventTime=07:20:05, severity=Moderate)
-  Queue wait time: 00:00.028
-  Response time: 00:03.280
-  Time to extinguish: 00:12.545
-  Completed by drone: 18
+  Queue Wait Time: 00:00.156
+  Event Response Time: 00:02.862
+  Event Completion Time: 00:11.915
+  Completed by drone: 1
+  Service Time After Arrival: 00:09.053
 
 Zone 3 (eventTime=07:22:03, severity=High)
-  Queue wait time: 00:00.003
-  Response time: 00:03.755
-  Time to extinguish: 00:19.798
-  Completed by drone: 3
+  Queue Wait Time: 00:00.012
+  Event Response Time: 00:02.722
+  Event Completion Time: 00:18.711
+  Completed by drone: 5
+  Service Time After Arrival: 00:15.989
 
 Zone 5 (eventTime=07:54:45, severity=Moderate)
-  Queue wait time: 00:00.030
-  Response time: 00:03.531
-  Time to extinguish: 00:12.422
-  Completed by drone: 4
+  Queue Wait Time: 00:00.028
+  Event Response Time: 00:02.744
+  Event Completion Time: 00:11.563
+  Completed by drone: 15
+  Service Time After Arrival: 00:08.819
 
 Summary Metrics
 ---------------
 Number of fires handled: 50
-Average extinguish time: 00:13.537
-Average queue wait time: 00:00.027
-Average response time: 00:03.856
-Total time to extinguish all fires: 04:56.302
+Average Queue Wait Time: 00:00.102
+Average Event Response Time: 00:03.420
+Maximum Event Response Time: 00:10.914
+Average Event Completion Time: 00:12.622
+Maximum Event Completion Time: 00:19.276
+Total Time to Extinguish All Fires: 04:54.785
 
 Per-Drone Metrics
 -----------------
 Drone 1
-  Missions per drone: 4
-  Fires handled: 4
-  Drone flight time: 00:51.485
-  Drone idle time: 04:38.265
-  Distance traveled: 38676.13 m
-  Drone utilization: 20.75%
+  Missions Assigned: 3
+  Fires Handled: 3
+  Travel Time: 00:34.383
+  Service Time: 00:14.720
+  Active Work Time: 00:49.103
+  Idle Time: 04:45.343
+  Distance Traveled: 22144.03 m
+  Drone Utilization: 14.68%
 
 Drone 2
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:31.902
-  Drone idle time: 05:03.656
-  Distance traveled: 19342.06 m
-  Drone utilization: 12.82%
+  Missions Assigned: 5
+  Fires Handled: 5
+  Travel Time: 01:08.407
+  Service Time: 00:29.254
+  Active Work Time: 01:37.661
+  Idle Time: 03:54.449
+  Distance Traveled: 61940.89 m
+  Drone Utilization: 29.41%
 
 Drone 3
-  Missions per drone: 3
-  Fires handled: 3
-  Drone flight time: 00:40.682
-  Drone idle time: 04:50.663
-  Distance traveled: 17148.97 m
-  Drone utilization: 16.09%
+  Missions Assigned: 3
+  Fires Handled: 3
+  Travel Time: 00:44.535
+  Service Time: 00:18.831
+  Active Work Time: 01:03.366
+  Idle Time: 04:27.034
+  Distance Traveled: 43461.14 m
+  Drone Utilization: 19.18%
 
 Drone 4
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:25.446
-  Drone idle time: 05:09.108
-  Distance traveled: 24746.02 m
-  Drone utilization: 10.39%
+  Missions Assigned: 0
+  Fires Handled: 0
+  Travel Time: 00:00.000
+  Service Time: 00:00.000
+  Active Work Time: 00:00.000
+  Idle Time: 05:28.782
+  Distance Traveled: 0.00 m
+  Drone Utilization: 0.00%
 
 Drone 5
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:21.988
-  Drone idle time: 05:11.622
-  Distance traveled: 19772.08 m
-  Drone utilization: 8.86%
+  Missions Assigned: 5
+  Fires Handled: 5
+  Travel Time: 00:53.851
+  Service Time: 00:22.951
+  Active Work Time: 01:16.802
+  Idle Time: 04:10.821
+  Distance Traveled: 31033.20 m
+  Drone Utilization: 23.44%
 
 Drone 6
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:20.054
-  Drone idle time: 05:10.373
-  Distance traveled: 17170.54 m
-  Drone utilization: 8.58%
+  Missions Assigned: 2
+  Fires Handled: 2
+  Travel Time: 00:19.585
+  Service Time: 00:08.248
+  Active Work Time: 00:27.833
+  Idle Time: 04:58.216
+  Distance Traveled: 8284.96 m
+  Drone Utilization: 8.54%
 
 Drone 7
-  Missions per drone: 1
-  Fires handled: 1
-  Drone flight time: 00:09.874
-  Drone idle time: 05:21.062
-  Distance traveled: 5835.93 m
-  Drone utilization: 4.25%
+  Missions Assigned: 1
+  Fires Handled: 1
+  Travel Time: 00:14.674
+  Service Time: 00:06.250
+  Active Work Time: 00:20.924
+  Idle Time: 05:03.509
+  Distance Traveled: 8790.60 m
+  Drone Utilization: 6.45%
 
 Drone 8
-  Missions per drone: 1
-  Fires handled: 1
-  Drone flight time: 00:15.913
-  Drone idle time: 05:10.709
-  Distance traveled: 13627.37 m
-  Drone utilization: 6.73%
+  Missions Assigned: 5
+  Fires Handled: 5
+  Travel Time: 00:53.689
+  Service Time: 00:22.977
+  Active Work Time: 01:16.666
+  Idle Time: 04:06.064
+  Distance Traveled: 40665.20 m
+  Drone Utilization: 23.76%
 
 Drone 9
-  Missions per drone: 1
-  Fires handled: 1
-  Drone flight time: 00:05.005
-  Drone idle time: 05:23.409
-  Distance traveled: 3429.35 m
-  Drone utilization: 2.17%
+  Missions Assigned: 1
+  Fires Handled: 1
+  Travel Time: 00:04.899
+  Service Time: 00:02.085
+  Active Work Time: 00:06.984
+  Idle Time: 05:14.476
+  Distance Traveled: 4466.58 m
+  Drone Utilization: 2.17%
 
 Drone 10
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:30.860
-  Drone idle time: 04:44.018
-  Distance traveled: 29719.96 m
-  Drone utilization: 13.36%
+  Missions Assigned: 4
+  Fires Handled: 4
+  Travel Time: 00:30.028
+  Service Time: 00:12.565
+  Active Work Time: 00:42.593
+  Idle Time: 04:36.982
+  Distance Traveled: 22017.17 m
+  Drone Utilization: 13.33%
 
 Drone 11
-  Missions per drone: 4
-  Fires handled: 4
-  Drone flight time: 00:49.675
-  Drone idle time: 04:17.112
-  Distance traveled: 33007.66 m
-  Drone utilization: 21.15%
+  Missions Assigned: 4
+  Fires Handled: 4
+  Travel Time: 00:44.594
+  Service Time: 00:18.776
+  Active Work Time: 01:03.370
+  Idle Time: 04:14.687
+  Distance Traveled: 29817.94 m
+  Drone Utilization: 19.92%
 
 Drone 12
-  Missions per drone: 4
-  Fires handled: 4
-  Drone flight time: 00:31.160
-  Drone idle time: 04:39.691
-  Distance traveled: 13157.07 m
-  Drone utilization: 13.63%
+  Missions Assigned: 2
+  Fires Handled: 2
+  Travel Time: 00:19.630
+  Service Time: 00:08.434
+  Active Work Time: 00:28.064
+  Idle Time: 04:47.828
+  Distance Traveled: 11745.26 m
+  Drone Utilization: 8.88%
 
 Drone 13
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:34.856
-  Drone idle time: 04:32.705
-  Distance traveled: 22491.38 m
-  Drone utilization: 15.02%
+  Missions Assigned: 1
+  Fires Handled: 1
+  Travel Time: 00:14.655
+  Service Time: 00:06.341
+  Active Work Time: 00:20.996
+  Idle Time: 04:53.544
+  Distance Traveled: 3787.26 m
+  Drone Utilization: 6.68%
 
 Drone 14
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:15.528
-  Drone idle time: 04:56.045
-  Distance traveled: 10416.32 m
-  Drone utilization: 6.65%
+  Missions Assigned: 3
+  Fires Handled: 3
+  Travel Time: 00:33.608
+  Service Time: 00:14.581
+  Active Work Time: 00:48.189
+  Idle Time: 04:24.266
+  Distance Traveled: 33272.98 m
+  Drone Utilization: 15.42%
 
 Drone 15
-  Missions per drone: 3
-  Fires handled: 3
-  Drone flight time: 00:27.545
-  Drone idle time: 04:34.537
-  Distance traveled: 17910.98 m
-  Drone utilization: 12.70%
+  Missions Assigned: 2
+  Fires Handled: 2
+  Travel Time: 00:14.504
+  Service Time: 00:06.290
+  Active Work Time: 00:20.794
+  Idle Time: 04:50.577
+  Distance Traveled: 13377.23 m
+  Drone Utilization: 6.68%
 
 Drone 16
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:29.751
-  Drone idle time: 04:29.028
-  Distance traveled: 28549.19 m
-  Drone utilization: 13.67%
+  Missions Assigned: 1
+  Fires Handled: 1
+  Travel Time: 00:04.929
+  Service Time: 00:02.074
+  Active Work Time: 00:07.003
+  Idle Time: 05:02.180
+  Distance Traveled: 1241.68 m
+  Drone Utilization: 2.27%
 
 Drone 17
-  Missions per drone: 3
-  Fires handled: 3
-  Drone flight time: 00:26.756
-  Drone idle time: 04:32.093
-  Distance traveled: 24352.48 m
-  Drone utilization: 12.09%
+  Missions Assigned: 5
+  Fires Handled: 5
+  Travel Time: 00:24.654
+  Service Time: 00:10.488
+  Active Work Time: 00:35.142
+  Idle Time: 04:31.765
+  Distance Traveled: 17737.77 m
+  Drone Utilization: 11.45%
 
 Drone 18
-  Missions per drone: 3
-  Fires handled: 3
-  Drone flight time: 00:24.764
-  Drone idle time: 04:34.513
-  Distance traveled: 7247.73 m
-  Drone utilization: 10.81%
+  Missions Assigned: 3
+  Fires Handled: 3
+  Travel Time: 00:34.677
+  Service Time: 00:14.843
+  Active Work Time: 00:49.520
+  Idle Time: 04:15.592
+  Distance Traveled: 25486.45 m
+  Drone Utilization: 16.23%
 
 Drone 19
-  Missions per drone: 2
-  Fires handled: 2
-  Drone flight time: 00:28.938
-  Drone idle time: 04:23.369
-  Distance traveled: 14338.73 m
-  Drone utilization: 13.74%
+  Missions Assigned: 0
+  Fires Handled: 0
+  Travel Time: 00:00.000
+  Service Time: 00:00.000
+  Active Work Time: 00:00.000
+  Idle Time: 05:03.614
+  Distance Traveled: 0.00 m
+  Drone Utilization: 0.00%
 
 Drone 20
-  Missions per drone: 5
-  Fires handled: 5
-  Drone flight time: 00:36.423
-  Drone idle time: 04:12.202
-  Distance traveled: 17855.88 m
-  Drone utilization: 16.84%
+  Missions Assigned: 0
+  Fires Handled: 0
+  Travel Time: 00:00.000
+  Service Time: 00:00.000
+  Active Work Time: 00:00.000
+  Idle Time: 05:01.902
+  Distance Traveled: 0.00 m
+  Drone Utilization: 0.00%
 

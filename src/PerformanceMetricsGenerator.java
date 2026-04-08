@@ -36,6 +36,26 @@ public class PerformanceMetricsGenerator {
             this.severity = severity;
             this.receivedAt = receivedAt;
         }
+
+        long queueWaitMs() {
+            if (receivedAt == null || firstAssignedAt == null) return -1;
+            return Math.max(0, ChronoUnit.MILLIS.between(receivedAt, firstAssignedAt));
+        }
+
+        long responseMs() {
+            if (receivedAt == null || firstArrivedAt == null) return -1;
+            return Math.max(0, ChronoUnit.MILLIS.between(receivedAt, firstArrivedAt));
+        }
+
+        long completionMs() {
+            if (receivedAt == null || completedAt == null) return -1;
+            return Math.max(0, ChronoUnit.MILLIS.between(receivedAt, completedAt));
+        }
+
+        long serviceMs() {
+            if (firstArrivedAt == null || completedAt == null) return -1;
+            return Math.max(0, ChronoUnit.MILLIS.between(firstArrivedAt, completedAt));
+        }
     }
 
     private static class DroneMetric {
@@ -51,8 +71,8 @@ public class PerformanceMetricsGenerator {
         Integer lastX;
         Integer lastY;
 
-        long flightMs = 0;
-        long busyMs = 0;
+        long travelMs = 0;
+        long serviceMs = 0;
 
         int missionsAssigned = 0;
         int firesHandled = 0;
@@ -85,11 +105,11 @@ public class PerformanceMetricsGenerator {
             long delta = ChronoUnit.MILLIS.between(currentStateStart, ts);
             if (delta < 0) delta = 0;
 
-            if (isFlightState(currentState)) {
-                flightMs += delta;
+            if (isTravelState(currentState)) {
+                travelMs += delta;
             }
-            if (isBusyState(currentState)) {
-                busyMs += delta;
+            if (isServiceState(currentState)) {
+                serviceMs += delta;
             }
         }
 
@@ -100,14 +120,18 @@ public class PerformanceMetricsGenerator {
             return ChronoUnit.MILLIS.between(firstSeen, endTime);
         }
 
+        long activeWorkMs() {
+            return travelMs + serviceMs;
+        }
+
         long idleMs() {
-            return Math.max(0, totalLifetimeMs() - busyMs);
+            return Math.max(0, totalLifetimeMs() - activeWorkMs());
         }
 
         double utilizationPercent() {
             long total = totalLifetimeMs();
             if (total <= 0) return 0.0;
-            return (100.0 * busyMs) / total;
+            return (100.0 * activeWorkMs()) / total;
         }
     }
 
@@ -169,7 +193,9 @@ public class PerformanceMetricsGenerator {
                     metric.assignedDroneId = droneId;
                 }
 
-                drone(drones, droneId).missionsAssigned++;
+                if (droneId >= 0) {
+                    drone(drones, droneId).missionsAssigned++;
+                }
                 continue;
             }
 
@@ -199,7 +225,9 @@ public class PerformanceMetricsGenerator {
                     }
                 }
 
-                drone(drones, droneId).firesHandled++;
+                if (droneId >= 0) {
+                    drone(drones, droneId).firesHandled++;
+                }
 
                 if (lastFireCompletedAt == null || ts.isAfter(lastFireCompletedAt)) {
                     lastFireCompletedAt = ts;
@@ -210,7 +238,9 @@ public class PerformanceMetricsGenerator {
             if ("SCHEDULER".equals(subsystem) && "DRONE_STATUS_RECEIVED".equals(event)) {
                 int droneId = parseInt(kv.get("drone"), -1);
                 String state = kv.getOrDefault("state", "UNKNOWN");
-                drone(drones, droneId).transitionTo(state, ts);
+                if (droneId >= 0) {
+                    drone(drones, droneId).transitionTo(state, ts);
+                }
                 continue;
             }
 
@@ -219,30 +249,36 @@ public class PerformanceMetricsGenerator {
                 int x = parseInt(kv.get("x"), 0);
                 int y = parseInt(kv.get("y"), 0);
 
-                DroneMetric dm = drone(drones, droneId);
-                dm.seenAt(ts);
+                if (droneId >= 0) {
+                    DroneMetric dm = drone(drones, droneId);
+                    dm.seenAt(ts);
 
-                if (dm.lastX != null && dm.lastY != null) {
-                    dm.distanceMeters += Math.hypot(x - dm.lastX, y - dm.lastY);
+                    if (dm.lastX != null && dm.lastY != null) {
+                        dm.distanceMeters += Math.hypot(x - dm.lastX, y - dm.lastY);
+                    }
+
+                    dm.lastX = x;
+                    dm.lastY = y;
                 }
-
-                dm.lastX = x;
-                dm.lastY = y;
                 continue;
             }
 
             if ("DRONE".equals(subsystem) && "STARTED".equals(event)) {
                 int droneId = parseInt(kv.get("drone"), -1);
-                drone(drones, droneId).seenAt(ts);
+                if (droneId >= 0) {
+                    drone(drones, droneId).seenAt(ts);
+                }
                 continue;
             }
 
             if ("DRONE".equals(subsystem) && "PROCESS_TERMINATED".equals(event)) {
                 int droneId = parseInt(kv.get("drone"), -1);
-                DroneMetric dm = drone(drones, droneId);
-                dm.seenAt(ts);
-                dm.closeStateInterval(ts);
-                dm.endTime = ts;
+                if (droneId >= 0) {
+                    DroneMetric dm = drone(drones, droneId);
+                    dm.seenAt(ts);
+                    dm.closeStateInterval(ts);
+                    dm.endTime = ts;
+                }
             }
         }
 
@@ -262,50 +298,66 @@ public class PerformanceMetricsGenerator {
                                     LocalDateTime lastFireCompletedAt) throws IOException {
 
         int completedCount = 0;
-        long totalExtinguishMs = 0;
+
         long totalQueueWaitMs = 0;
         long totalResponseMs = 0;
+        long totalCompletionMs = 0;
+
+        long maxResponseMs = -1;
+        long maxCompletionMs = -1;
+
         int queueSamples = 0;
         int responseSamples = 0;
+        int completionSamples = 0;
 
         StringBuilder sb = new StringBuilder();
         sb.append("PERFORMANCE METRICS\n");
         sb.append("===================\n\n");
 
-        sb.append("Fire Metrics\n");
-        sb.append("------------\n");
+        sb.append("Event Metrics\n");
+        sb.append("-------------\n");
 
         for (EventMetric metric : events.values()) {
             sb.append("Zone ").append(metric.zoneId)
                     .append(" (eventTime=").append(metric.eventTime)
                     .append(", severity=").append(metric.severity).append(")\n");
 
-            if (metric.firstAssignedAt != null) {
-                long queueWait = millisBetween(metric.receivedAt, metric.firstAssignedAt);
+            long queueWait = metric.queueWaitMs();
+            if (queueWait >= 0) {
                 totalQueueWaitMs += queueWait;
                 queueSamples++;
-                sb.append("  Queue wait time: ").append(formatDuration(queueWait)).append("\n");
+                sb.append("  Queue Wait Time: ").append(formatDuration(queueWait)).append("\n");
             } else {
-                sb.append("  Queue wait time: N/A\n");
+                sb.append("  Queue Wait Time: N/A\n");
             }
 
-            if (metric.firstArrivedAt != null) {
-                long responseTime = millisBetween(metric.receivedAt, metric.firstArrivedAt);
+            long responseTime = metric.responseMs();
+            if (responseTime >= 0) {
                 totalResponseMs += responseTime;
                 responseSamples++;
-                sb.append("  Response time: ").append(formatDuration(responseTime)).append("\n");
+                maxResponseMs = Math.max(maxResponseMs, responseTime);
+                sb.append("  Event Response Time: ").append(formatDuration(responseTime)).append("\n");
             } else {
-                sb.append("  Response time: N/A\n");
+                sb.append("  Event Response Time: N/A\n");
             }
 
-            if (metric.completedAt != null) {
-                long extinguishTime = millisBetween(metric.receivedAt, metric.completedAt);
-                totalExtinguishMs += extinguishTime;
+            long completionTime = metric.completionMs();
+            if (completionTime >= 0) {
+                totalCompletionMs += completionTime;
+                completionSamples++;
                 completedCount++;
-                sb.append("  Time to extinguish: ").append(formatDuration(extinguishTime)).append("\n");
+                maxCompletionMs = Math.max(maxCompletionMs, completionTime);
+                sb.append("  Event Completion Time: ").append(formatDuration(completionTime)).append("\n");
                 sb.append("  Completed by drone: ").append(metric.completedByDroneId).append("\n");
             } else {
-                sb.append("  Time to extinguish: N/A\n");
+                sb.append("  Event Completion Time: N/A\n");
+            }
+
+            long serviceTime = metric.serviceMs();
+            if (serviceTime >= 0) {
+                sb.append("  Service Time After Arrival: ").append(formatDuration(serviceTime)).append("\n");
+            } else {
+                sb.append("  Service Time After Arrival: N/A\n");
             }
 
             sb.append("\n");
@@ -314,22 +366,33 @@ public class PerformanceMetricsGenerator {
         sb.append("Summary Metrics\n");
         sb.append("---------------\n");
         sb.append("Number of fires handled: ").append(completedCount).append("\n");
-        sb.append("Average extinguish time: ")
-                .append(completedCount == 0 ? "N/A" : formatDuration(totalExtinguishMs / completedCount))
-                .append("\n");
-        sb.append("Average queue wait time: ")
+
+        sb.append("Average Queue Wait Time: ")
                 .append(queueSamples == 0 ? "N/A" : formatDuration(totalQueueWaitMs / queueSamples))
                 .append("\n");
-        sb.append("Average response time: ")
+
+        sb.append("Average Event Response Time: ")
                 .append(responseSamples == 0 ? "N/A" : formatDuration(totalResponseMs / responseSamples))
                 .append("\n");
 
+        sb.append("Maximum Event Response Time: ")
+                .append(maxResponseMs < 0 ? "N/A" : formatDuration(maxResponseMs))
+                .append("\n");
+
+        sb.append("Average Event Completion Time: ")
+                .append(completionSamples == 0 ? "N/A" : formatDuration(totalCompletionMs / completionSamples))
+                .append("\n");
+
+        sb.append("Maximum Event Completion Time: ")
+                .append(maxCompletionMs < 0 ? "N/A" : formatDuration(maxCompletionMs))
+                .append("\n");
+
         if (firstEventReceivedAt != null && lastFireCompletedAt != null) {
-            sb.append("Total time to extinguish all fires: ")
+            sb.append("Total Time to Extinguish All Fires: ")
                     .append(formatDuration(millisBetween(firstEventReceivedAt, lastFireCompletedAt)))
                     .append("\n");
         } else {
-            sb.append("Total time to extinguish all fires: N/A\n");
+            sb.append("Total Time to Extinguish All Fires: N/A\n");
         }
 
         sb.append("\n");
@@ -338,12 +401,14 @@ public class PerformanceMetricsGenerator {
 
         for (DroneMetric dm : drones.values()) {
             sb.append("Drone ").append(dm.droneId).append("\n");
-            sb.append("  Missions per drone: ").append(dm.missionsAssigned).append("\n");
-            sb.append("  Fires handled: ").append(dm.firesHandled).append("\n");
-            sb.append("  Drone flight time: ").append(formatDuration(dm.flightMs)).append("\n");
-            sb.append("  Drone idle time: ").append(formatDuration(dm.idleMs())).append("\n");
-            sb.append("  Distance traveled: ").append(String.format(Locale.US, "%.2f m", dm.distanceMeters)).append("\n");
-            sb.append("  Drone utilization: ").append(String.format(Locale.US, "%.2f%%", dm.utilizationPercent())).append("\n");
+            sb.append("  Missions Assigned: ").append(dm.missionsAssigned).append("\n");
+            sb.append("  Fires Handled: ").append(dm.firesHandled).append("\n");
+            sb.append("  Travel Time: ").append(formatDuration(dm.travelMs)).append("\n");
+            sb.append("  Service Time: ").append(formatDuration(dm.serviceMs)).append("\n");
+            sb.append("  Active Work Time: ").append(formatDuration(dm.activeWorkMs())).append("\n");
+            sb.append("  Idle Time: ").append(formatDuration(dm.idleMs())).append("\n");
+            sb.append("  Distance Traveled: ").append(String.format(Locale.US, "%.2f m", dm.distanceMeters)).append("\n");
+            sb.append("  Drone Utilization: ").append(String.format(Locale.US, "%.2f%%", dm.utilizationPercent())).append("\n");
             sb.append("\n");
         }
 
@@ -354,15 +419,15 @@ public class PerformanceMetricsGenerator {
         return drones.computeIfAbsent(droneId, DroneMetric::new);
     }
 
-    private static boolean isFlightState(String state) {
+    private static boolean isTravelState(String state) {
         return "TAKEOFF".equalsIgnoreCase(state)
                 || "EN_ROUTE".equalsIgnoreCase(state)
                 || "RETURNING".equalsIgnoreCase(state);
     }
 
-    private static boolean isBusyState(String state) {
-        return isFlightState(state)
-                || "EXTINGUISHING".equalsIgnoreCase(state)
+    private static boolean isServiceState(String state) {
+        return "EXTINGUISHING".equalsIgnoreCase(state)
+                || "SERVICING".equalsIgnoreCase(state)
                 || "SOFT_FAULTED".equalsIgnoreCase(state);
     }
 
